@@ -20,33 +20,33 @@ class Paths extends BaseConfig
      * The directory name, relative to the root directory, that holds
      * the CodeIgniter framework.
      */
-    public string $systemDirectory = __DIR__ . '/../../vendor/codeigniter4/framework/system';
+    public $systemDirectory = __DIR__ . '/../../vendor/codeigniter4/framework/system';
 
     /**
      * ---------------------------------------------------------------
      * APP DIRECTORY
      * ---------------------------------------------------------------
      */
-    public string $appDirectory = __DIR__ . '/..';
+    public $appDirectory = __DIR__ . '/..';
 
     /**
      * ---------------------------------------------------------------
      * WRITABLE DIRECTORY
      * ---------------------------------------------------------------
      */
-    public string $writableDirectory = __DIR__ . '/../../writable';
+    public $writableDirectory = __DIR__ . '/../../writable';
 
     /**
      * ---------------------------------------------------------------
      * TESTS DIRECTORY
      * ---------------------------------------------------------------
      */
-    public string $testsDirectory = __DIR__ . '/../../tests';
+    public $testsDirectory = __DIR__ . '/../../tests';
 
     /**
      * ---------------------------------------------------------------
      * ROOT DIRECTORY
      * ---------------------------------------------------------------
      */
-    public string $rootDirectory = __DIR__ . '/../../';
+    public $rootDirectory = __DIR__ . '/../../';
 }
