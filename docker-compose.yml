@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: toolpages-app
+    volumes:
+      - ./:/var/www/html
+    environment:
+      - CI_ENVIRONMENT=development
+    depends_on:
+      - mariadb
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: toolpages-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html:ro
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+
+  mariadb:
+    image: mariadb:11
+    container_name: toolpages-db
+    environment:
+      - MARIADB_DATABASE=toolpages
+      - MARIADB_USER=toolpages
+      - MARIADB_PASSWORD=toolpages
+      - MARIADB_ROOT_PASSWORD=root
+    volumes:
+      - dbdata:/var/lib/mysql
+
+volumes:
+  dbdata:
