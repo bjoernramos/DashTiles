@@ -33,3 +33,16 @@ Reverse proxy / base path
   - app.baseURL = 'https://your-host/toolpages/'
   - toolpages.basePath = '/toolpages'
   Then access the app at the configured subpath.
+
+LDAP group restriction (optional)
+- You can restrict LDAP logins to members of a specific group via .env. Two options are supported:
+  1) Fixed Group DN (recommended):
+     - ldap.groupDN = 'cn=toolpages,ou=applications,ou=groups,dc=b-ramos,dc=de'
+     - The app reads the group entry and checks membership via member/uniqueMember (DN-based) and memberUid (uid-based for posixGroup).
+  2) Dynamic filter with placeholders:
+     - ldap.groupFilter = '(memberOf=cn=toolpages,ou=groups,dc=example,dc=org)'
+     - Supported placeholders: {dn}, {uid}
+       - Example (groupOfNames): '(&(objectClass=groupOfNames)(cn=toolpages)(member={dn}))'
+       - Example (posixGroup with memberUid): '(&(objectClass=posixGroup)(cn=toolpages)(memberUid={uid}))'
+  - Precedence: If ldap.groupDN is set, it will be used and ldap.groupFilter will be ignored.
+  - Leave both empty to allow all authenticated LDAP users.

@@ -47,6 +47,10 @@ class AuthController extends BaseController
             if (! $ok) {
                 return redirect()->to('/login')->with('error', 'Invalid LDAP credentials');
             }
+            // Optional group membership enforcement via ldap.groupFilter (from .env)
+            if (! $ldap->isMemberOfRequiredGroup($entry)) {
+                return redirect()->to('/login')->with('error', 'Access denied: not a member of required group');
+            }
         } catch (\Throwable $e) {
             return redirect()->to('/login')->with('error', 'LDAP error: ' . $e->getMessage());
         }
