@@ -4,7 +4,6 @@ FROM php:8.3-fpm
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies and PHP extensions (intl, mbstring, mysqli, ldap)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git unzip libicu-dev libonig-dev libzip-dev libldap2-dev libpng-dev \
     libxml2-dev zlib1g-dev libssl-dev \
@@ -14,20 +13,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-install ldap \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
+# Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy project files
-COPY . /var/www/html
+# COPY ONLY composer files first
+COPY composer.json composer.lock ./
 
-# Ensure writable directories
-RUN mkdir -p writable/cache writable/logs writable/session \
-    && chown -R www-data:www-data writable \
-    && chmod -R 775 writable
+# Install framework inside container
+RUN composer install --no-interaction --no-progress
 
-# Environment
-ENV PHP_MEMORY_LIMIT=256M
+# Now copy ONLY your application code, NOT vendor, NOT system
+COPY app ./app
+COPY public ./public
+COPY writable ./writable
+COPY spark ./spark
+
+# Permissions
+RUN chown -R www-data:www-data ./writable \
+    && chmod -R 775 ./writable
 
 CMD ["php-fpm"]

@@ -6,7 +6,7 @@ class Home extends BaseController
 {
     public function index()
     {
-        $basePath = rtrim((string) (getenv('toolpages.basePath') ?: '/toolpages'), '/');
+        $basePath = rtrim((string) (getenv('toolpages.basePath') ?: '/'), '/');
         return view('home', [
             'basePath' => $basePath,
         ]);

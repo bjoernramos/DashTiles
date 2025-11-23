@@ -19,7 +19,7 @@ Quickstart (Docker)
 4) docker compose exec app php spark key:generate
 5) docker compose exec app php spark migrate
 6) docker compose exec app php spark db:seed AdminSeeder
-7) Open http://localhost:8080/toolpages
+7) Open http://localhost:8080/
 
 Default admin (first run)
 - username: admin
@@ -29,4 +29,7 @@ Testing
 - Run vendor/bin/phpunit or docker compose exec app composer test
 
 Reverse proxy / base path
-- Served from subpath /toolpages by default. Set BASE_PATH in .env to match your proxy.
+- By default the app is served at root (/). If you host behind a reverse proxy under a subpath (e.g., /toolpages), set in your .env:
+  - app.baseURL = 'https://your-host/toolpages/'
+  - toolpages.basePath = '/toolpages'
+  Then access the app at the configured subpath.
