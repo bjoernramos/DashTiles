@@ -5,7 +5,7 @@ namespace Config;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Debug\ExceptionHandler;
 use CodeIgniter\Debug\ExceptionHandlerInterface;
-use Psr\Log\LogLevel;
+// use Psr\Log\LogLevel; // Avoid using class constants in property defaults for compatibility
 use Throwable;
 
 /**
@@ -44,7 +44,8 @@ class Exceptions extends BaseConfig
      *
      * Default: APPPATH.'Views/errors'
      */
-    public string $errorViewPath = APPPATH . 'Views/errors';
+    // Keep empty by default; we will set a safe path in the constructor.
+    public string $errorViewPath = '';
 
     /**
      * --------------------------------------------------------------------------
@@ -78,7 +79,8 @@ class Exceptions extends BaseConfig
      * The related `Config\Logger::$threshold` should be adjusted, if needed,
      * to capture logging the deprecations.
      */
-    public string $deprecationLogLevel = LogLevel::WARNING;
+    // Use string literal to avoid static analysis complaints
+    public string $deprecationLogLevel = 'warning';
 
     /*
      * DEFINE THE HANDLERS USED
@@ -102,5 +104,21 @@ class Exceptions extends BaseConfig
     public function handler(int $statusCode, Throwable $exception): ExceptionHandlerInterface
     {
         return new ExceptionHandler($this);
+    }
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        if ($this->errorViewPath === '' || ! is_dir($this->errorViewPath)) {
+            // Resolve to vendor/codeigniter4/framework/system/Views/errors
+            $this->errorViewPath = dirname(__DIR__, 2)
+                . DIRECTORY_SEPARATOR . 'vendor'
+                . DIRECTORY_SEPARATOR . 'codeigniter4'
+                . DIRECTORY_SEPARATOR . 'framework'
+                . DIRECTORY_SEPARATOR . 'system'
+                . DIRECTORY_SEPARATOR . 'Views'
+                . DIRECTORY_SEPARATOR . 'errors';
+        }
     }
 }

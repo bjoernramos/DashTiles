@@ -8,7 +8,7 @@ Roadmap (current session)
 3) Users migration + model
 4) Auth (local + LDAP), filters, views
 5) Admin user management
-6) Basic API groundwork for future tool tiles
+6) Per-user Dashboard Tiles (links, iframes, files) with layout & categories
 7) Feature tests and docs
 
 Quickstart (Docker)
@@ -46,3 +46,27 @@ LDAP group restriction (optional)
        - Example (posixGroup with memberUid): '(&(objectClass=posixGroup)(cn=toolpages)(memberUid={uid}))'
   - Precedence: If ldap.groupDN is set, it will be used and ldap.groupFilter will be ignored.
   - Leave both empty to allow all authenticated LDAP users.
+  
+Per-user Dashboard Tiles
+- Nach dem Login werden dem Nutzer seine Kacheln direkt auf der Startseite (/) angezeigt.
+- Verwaltung/Anlegen/Bearbeiten erfolgt unter /dashboard.
+- Tile types supported:
+  - link: A simple link (can display an icon class or image URL and optional text label)
+  - iframe: Embeds an external page via iframe (be mindful of X-Frame-Options of the target)
+  - file: Upload a file stored under writable/uploads/{user_id}/ and served securely via /file/{tileId}
+- Categories: Tiles can be assigned a category; the dashboard renders rows per category.
+- Layout: Users can choose 1–6 columns; stored per user.
+
+Schema (migrations included)
+- tiles: id, user_id, type(enum: link, iframe, file), title, url, icon, text, category, position, timestamps, soft-deletes
+- user_settings: user_id (PK), columns, timestamps
+
+How to enable
+1) Run migrations after pulling changes:
+   docker compose exec app php spark migrate
+2) Log in and open http://localhost:8080/ — deine Kacheln erscheinen auf der Startseite.
+3) Öffne http://localhost:8080/dashboard um Spaltenzahl zu konfigurieren und Kacheln (Link, Iframe, Datei) anzulegen/zu bearbeiten und nach Kategorien zu gruppieren.
+
+Security notes
+- File tiles are served only to the owning user via a controller that verifies ownership.
+- Uploaded files are stored under writable/uploads/{user_id}/ and are not web-accessible directly via Nginx.
