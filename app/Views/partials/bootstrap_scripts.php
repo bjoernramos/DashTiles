@@ -5,31 +5,33 @@
   crossorigin="anonymous"
 ></script>
 <script>
-// Tile ping + tile click navigation
+// Tile ping (server-side via /ping) + tile click navigation
 (function(){
   const DOT_OK = 'ok', DOT_ERR = 'err';
+  const PING_ENDPOINT = '<?= site_url('ping') ?>';
 
-  function doFetch(url, timeoutMs){
+  function doPing(url, timeoutMs){
     return new Promise((resolve, reject) => {
       try {
-        const u = new URL(url, location.href);
-        const sameOrigin = u.origin === location.origin;
+        // quick client-side timeout guard
         const ctrl = new AbortController();
         const timer = setTimeout(() => { try{ctrl.abort();}catch(e){} reject(new Error('timeout')); }, timeoutMs);
-        const opts = {
-          method: sameOrigin ? 'HEAD' : 'GET',
-          mode: sameOrigin ? 'same-origin' : 'no-cors',
+        const qp = new URLSearchParams({ u: url });
+        fetch(PING_ENDPOINT + '?' + qp.toString(), {
+          method: 'GET',
           cache: 'no-store',
-          credentials: sameOrigin ? 'same-origin' : 'omit',
-          redirect: 'follow',
-          referrerPolicy: 'no-referrer',
+          credentials: 'same-origin',
           signal: ctrl.signal,
-        };
-        fetch(u.href, opts).then(() => { clearTimeout(timer); resolve(true); }).catch(() => { clearTimeout(timer); reject(new Error('fetch')); });
-      } catch (e) {
-        // Invalid URL
-        reject(e);
-      }
+          headers: { 'Accept': 'application/json' }
+        })
+        .then(r => r.json().catch(() => ({})))
+        .then(data => {
+          clearTimeout(timer);
+          if (data && data.ok) return resolve(true);
+          reject(new Error('bad'));
+        })
+        .catch(() => { clearTimeout(timer); reject(new Error('fetch')); });
+      } catch (e) { reject(e); }
     });
   }
 
@@ -42,7 +44,7 @@
       if (!dot) return;
       const delay = 50 * (idx % 20);
       setTimeout(() => {
-        doFetch(url, 3000)
+        doPing(url, 3500)
           .then(() => { dot.classList.remove(DOT_ERR); dot.classList.add(DOT_OK); })
           .catch(() => { dot.classList.remove(DOT_OK); dot.classList.add(DOT_ERR); });
       }, delay);

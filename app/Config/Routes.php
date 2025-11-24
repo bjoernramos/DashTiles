@@ -7,6 +7,8 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 $routes->get('health', 'Home::health');
+// Same-origin ping endpoint to check external URLs without CORS/CORP noise
+$routes->get('ping', 'Home::ping');
 
 // Auth
 $routes->get('login', 'AuthController::showLogin');
