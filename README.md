@@ -10,7 +10,9 @@ Roadmap (current session)
 5) Admin user management
 6) Per-user Dashboard Tiles (links, iframes, files) with layout & categories
 7) Admin-defined global tiles (visible for all users)
-8) Feature tests and docs
+8) Visibility per tile: assign to specific users and/or groups; groups are admin-managed
+9) Feature tests and docs
+10) Bootstrap 5 Styles via CDN (basic UI styling)
 
 Quickstart (Docker)
 - Requirements: Docker, Docker Compose
@@ -21,6 +23,13 @@ Quickstart (Docker)
 5) docker compose exec app php spark migrate
 6) docker compose exec app php spark db:seed AdminSeeder
 7) Open http://localhost:8080/
+
+UI/Styles
+- Bootstrap 5 is included via CDN on all main pages (Startseite, Login, Dashboard, Admin-Users).
+- To self-host Bootstrap instead of using CDN, replace the partials:
+  - app/Views/partials/bootstrap_head.php
+  - app/Views/partials/bootstrap_scripts.php
+  with local asset references (e.g., /public/vendor/bootstrap/*.css and *.js) and adjust your build/deploy accordingly.
 
 Default admin (first run)
 - username: admin
@@ -62,15 +71,29 @@ Per-user Dashboard Tiles
 Schema (migrations included)
 - tiles: id, user_id, is_global (tinyint, default 0), type(enum: link, iframe, file), title, url, icon, text, category, position, timestamps, soft-deletes
 - user_settings: user_id (PK), columns, timestamps
+- groups: id, name, timestamps
+- user_groups: user_id, group_id (pivot)
+- tile_users: tile_id, user_id (pivot)
+- tile_groups: tile_id, group_id (pivot)
 
 How to enable
 1) Run migrations after pulling changes:
    docker compose exec app php spark migrate
 2) Log in and open http://localhost:8080/ — deine Kacheln erscheinen auf der Startseite.
 3) Öffne http://localhost:8080/dashboard um Spaltenzahl zu konfigurieren und Kacheln (Link, Iframe, Datei) anzulegen/zu bearbeiten und nach Kategorien zu gruppieren.
-4) Als Admin: Beim Anlegen/Bearbeiten kannst du die Checkbox „Global (für alle Nutzer anzeigen)“ setzen. Diese Kacheln erscheinen bei allen Nutzern zusätzlich zu deren eigenen.
+4) Sichtbarkeit einer Kachel:
+   - Global: Als Admin Checkbox „Global (für alle Nutzer anzeigen)“ setzen.
+   - Benutzer: Eine oder mehrere Personen auswählen.
+   - Gruppen: Eine oder mehrere Gruppen auswählen (vorher unter Admin → Gruppen anlegen und mit Benutzern befüllen).
+   - Hinweis: Global wirkt zusätzlich. Ohne Auswahl sehen standardmäßig der Besitzer (Ersteller) die Kachel, plus alle explizit zugewiesenen Benutzer/Gruppen.
+
+Admin → Gruppen
+- Admins können Gruppen anlegen (Name) und Mitglieder über eine Mehrfachauswahl verwalten.
+- Benutzer können in mehreren Gruppen sein.
+- Kacheln können einer oder mehreren Gruppen und/oder Benutzern zugewiesen werden.
 
 Security notes
 - File tiles are served only to the owning user via a controller that verifies ownership. For global file tiles, download is allowed for any logged-in user.
 - Uploaded files are stored under writable/uploads/{user_id}/ and are not web-accessible directly via Nginx.
 - Only admins can mark tiles as global or delete global tiles; normal users cannot modify global tiles.
+ - Tile visibility checks include: owner, global, explicit user assignment, membership via assigned groups.

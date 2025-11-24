@@ -4,74 +4,73 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Users • Admin</title>
-  <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Helvetica,Arial,sans-serif;margin:0;background:#0b1020;color:#e6e9ef}
-    .wrap{max-width:1000px;margin:2rem auto;padding:0 1rem}
-    .card{background:#121833;border:1px solid #2a3358;border-radius:12px;padding:24px}
-    table{width:100%;border-collapse:collapse}
-    th,td{border-bottom:1px solid #2a3358;padding:.6rem .5rem;text-align:left}
-    .btn{display:inline-block;background:#2a62ff;border:1px solid #2a62ff;color:#fff;padding:.35rem .7rem;border-radius:8px;text-decoration:none;cursor:pointer}
-    .btn.secondary{background:#273158;border-color:#273158}
-    .muted{color:#b7bfcc}
-    .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
-  </style>
+  <?= view('partials/bootstrap_head') ?>
 </head>
 <body>
-  <div class="wrap">
-    <div class="row">
-      <h1>Admin • Users</h1>
-      <div>
-        <a class="btn" href="<?= site_url('admin/users/create') ?>">Add Local User</a>
-        <a class="btn secondary" href="<?= site_url('/') ?>">Back</a>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1 class="h3 m-0">Admin • Users</h1>
+      <div class="d-flex gap-2">
+        <a class="btn btn-primary" href="<?= site_url('admin/users/create') ?>">Add Local User</a>
+        <a class="btn btn-secondary" href="<?= site_url('/') ?>">Back</a>
       </div>
     </div>
-    <div class="card">
-      <?php if (session()->getFlashdata('error')): ?>
-        <p class="muted">Error: <?= esc(session()->getFlashdata('error')) ?></p>
-      <?php endif; ?>
-      <?php if (session()->getFlashdata('success')): ?>
-        <p class="muted"><?= esc(session()->getFlashdata('success')) ?></p>
-      <?php endif; ?>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Source</th>
-            <th>Role</th>
-            <th>Active</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($users as $u): ?>
-          <tr>
-            <td><?= (int) $u['id'] ?></td>
-            <td><?= esc($u['username']) ?></td>
-            <td><?= esc($u['display_name'] ?? '') ?></td>
-            <td><?= esc($u['email'] ?? '') ?></td>
-            <td><?= esc($u['auth_source']) ?></td>
-            <td>
-              <form method="post" action="<?= site_url('admin/users/' . (int) $u['id'] . '/role') ?>" style="display:inline">
-                <select name="role" onchange="this.form.submit()">
-                  <option value="user" <?= ($u['role'] === 'user' ? 'selected' : '') ?>>user</option>
-                  <option value="admin" <?= ($u['role'] === 'admin' ? 'selected' : '') ?>>admin</option>
-                </select>
-              </form>
-            </td>
-            <td><?= ((int) $u['is_active'] === 1 ? 'yes' : 'no') ?></td>
-            <td>
-              <form method="post" action="<?= site_url('admin/users/' . (int) $u['id'] . '/toggle') ?>" style="display:inline">
-                <button class="btn secondary" type="submit">Toggle</button>
-              </form>
-            </td>
-          </tr>
-        <?php endforeach; ?>
-        </tbody>
-      </table>
+    <?php if (session()->getFlashdata('error')): ?>
+      <div class="alert alert-danger" role="alert"><?= esc(session()->getFlashdata('error')) ?></div>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('success')): ?>
+      <div class="alert alert-success" role="alert"><?= esc(session()->getFlashdata('success')) ?></div>
+    <?php endif; ?>
+    <div class="card shadow-sm">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
+            <thead>
+              <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Username</th>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Source</th>
+                <th scope="col">Role</th>
+                <th scope="col">Active</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($users as $u): ?>
+              <tr>
+                <td><?= (int) $u['id'] ?></td>
+                <td><?= esc($u['username']) ?></td>
+                <td><?= esc($u['display_name'] ?? '') ?></td>
+                <td><?= esc($u['email'] ?? '') ?></td>
+                <td><?= esc($u['auth_source']) ?></td>
+                <td>
+                  <form method="post" action="<?= site_url('admin/users/' . (int) $u['id'] . '/role') ?>" class="m-0">
+                    <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
+                      <option value="user" <?= ($u['role'] === 'user' ? 'selected' : '') ?>>user</option>
+                      <option value="admin" <?= ($u['role'] === 'admin' ? 'selected' : '') ?>>admin</option>
+                    </select>
+                  </form>
+                </td>
+                <td>
+                  <span class="badge <?= ((int)$u['is_active'] === 1 ? 'bg-success' : 'bg-secondary') ?>">
+                    <?= ((int) $u['is_active'] === 1 ? 'yes' : 'no') ?>
+                  </span>
+                </td>
+                <td>
+                  <form method="post" action="<?= site_url('admin/users/' . (int) $u['id'] . '/toggle') ?>" class="d-inline">
+                    <button class="btn btn-sm btn-outline-secondary" type="submit">Toggle</button>
+                  </form>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
+  <?= view('partials/bootstrap_scripts') ?>
 </body>
 </html>

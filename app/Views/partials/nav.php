@@ -37,6 +37,7 @@ $isAdmin    = session()->get('role') === 'admin';
     <?php endif; ?>
     <?php if ($isAdmin): ?>
       <a href="<?= site_url('admin/users') ?>">Admin • Users</a>
+      <a href="<?= site_url('admin/groups') ?>">Admin • Gruppen</a>
     <?php endif; ?>
     <span style="flex:1"></span>
     <?php if ($isLoggedIn): ?>

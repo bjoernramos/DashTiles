@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mitglieder verwalten • Admin • toolpages</title>
+  <?= view('partials/bootstrap_head') ?>
+</head>
+<body>
+  <?= view('partials/nav') ?>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <h1 class="h3 m-0">Mitglieder: <?= esc($group['name'] ?? '') ?></h1>
+      <div>
+        <a class="btn btn-secondary" href="<?= site_url('admin/groups') ?>">Zurück</a>
+      </div>
+    </div>
+
+    <?php if (session()->getFlashdata('error')): ?>
+      <div class="alert alert-danger" role="alert"><?= esc(session()->getFlashdata('error')) ?></div>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('success')): ?>
+      <div class="alert alert-success" role="alert"><?= esc(session()->getFlashdata('success')) ?></div>
+    <?php endif; ?>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="post" action="<?= site_url('admin/groups/'.(int)$group['id'].'/members') ?>">
+          <div class="mb-3">
+            <label class="form-label">Benutzer in dieser Gruppe</label>
+            <select class="form-select" name="user_ids[]" multiple size="10">
+              <?php foreach (($users ?? []) as $u): ?>
+                <?php $display = trim(($u['display_name'] ?? '') ?: $u['username'] ?? ('#'.$u['id'])); ?>
+                <option value="<?= (int)$u['id'] ?>" <?= in_array((int)$u['id'], ($currentUserIds ?? []), true) ? 'selected' : '' ?>>
+                  <?= esc($display) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <button class="btn btn-primary" type="submit">Speichern</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <?= view('partials/bootstrap_scripts') ?>
+</body>
+</html>

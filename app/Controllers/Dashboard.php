@@ -4,6 +4,10 @@ namespace App\Controllers;
 
 use App\Models\TileModel;
 use App\Models\UserSettingModel;
+use App\Models\UserModel;
+use App\Models\GroupModel;
+use App\Models\TileUserModel;
+use App\Models\TileGroupModel;
 
 class Dashboard extends BaseController
 {
@@ -34,6 +38,35 @@ class Dashboard extends BaseController
         $settings = $settingsModel->getOrCreate($userId);
         $tiles = $tilesModel->forUser($userId)->findAll();
 
+        // Zuordnungen für bestehende Tiles sammeln (für Vorbelegung in Edit-Formularen)
+        $tileIds = array_map(static fn($t) => (int)$t['id'], $tiles);
+        $tileUserMap = [];
+        $tileGroupMap = [];
+        if (!empty($tileIds)) {
+            $tuRows = (new TileUserModel())->whereIn('tile_id', $tileIds)->findAll();
+            foreach ($tuRows as $r) {
+                $tid = (int)$r['tile_id'];
+                $tileUserMap[$tid] = $tileUserMap[$tid] ?? [];
+                $tileUserMap[$tid][] = (int)$r['user_id'];
+            }
+            $tgRows = (new TileGroupModel())->whereIn('tile_id', $tileIds)->findAll();
+            foreach ($tgRows as $r) {
+                $tid = (int)$r['tile_id'];
+                $tileGroupMap[$tid] = $tileGroupMap[$tid] ?? [];
+                $tileGroupMap[$tid][] = (int)$r['group_id'];
+            }
+        }
+
+        // Für Auswahlfelder (Sichtbarkeit): alle Nutzer und Gruppen
+        $users = (new UserModel())
+            ->select('id, display_name, username')
+            ->where('is_active', 1)
+            ->orderBy('display_name', 'ASC')
+            ->findAll();
+        $groups = (new GroupModel())
+            ->orderBy('name', 'ASC')
+            ->findAll();
+
         // Group tiles by category
         $grouped = [];
         foreach ($tiles as $t) {
@@ -50,6 +83,10 @@ class Dashboard extends BaseController
             'grouped'  => $grouped,
             'userId'   => $userId,
             'role'     => $role,
+            'usersList'=> $users,
+            'groupsList'=> $groups,
+            'tileUserMap' => $tileUserMap,
+            'tileGroupMap' => $tileGroupMap,
         ]);
     }
 
@@ -122,6 +159,11 @@ class Dashboard extends BaseController
         if (! $model->insert($data)) {
             return redirect()->back()->withInput()->with('error', implode("\n", $model->errors() ?: ['Speichern fehlgeschlagen']));
         }
+        $tileId = (int) $model->getInsertID();
+
+        // Sichtbarkeits-Zuweisungen speichern (optional)
+        $this->saveTileAssignments($tileId);
+
         return redirect()->to('/dashboard')->with('success', 'Kachel angelegt');
     }
 
@@ -174,6 +216,8 @@ class Dashboard extends BaseController
         if (! $model->update($id, $data)) {
             return redirect()->back()->withInput()->with('error', implode("\n", $model->errors() ?: ['Aktualisierung fehlgeschlagen']));
         }
+        // Aktualisiere Zuweisungen
+        $this->saveTileAssignments($id, true);
         return redirect()->to('/dashboard')->with('success', 'Kachel aktualisiert');
     }
 
@@ -188,6 +232,9 @@ class Dashboard extends BaseController
         if (! $tile || (! $isOwner && ! ($isAdmin && $isGlobal))) {
             return redirect()->to('/dashboard')->with('error', 'Kachel nicht gefunden');
         }
+        // Pivots entfernen
+        (new TileUserModel())->where('tile_id', $id)->delete();
+        (new TileGroupModel())->where('tile_id', $id)->delete();
         $model->delete($id);
         return redirect()->to('/dashboard')->with('success', 'Kachel gelöscht');
     }
@@ -210,5 +257,38 @@ class Dashboard extends BaseController
         }
         // Let browser decide to open or download based on mime
         return $this->response->download($fullPath, null)->setFileName(basename($fullPath));
+    }
+
+    /**
+     * Speichert Benutzer- und Gruppen-Zuweisungen für eine Kachel
+     * @param int $tileId
+     * @param bool $replace Wenn true, bestehende Zuweisungen werden ersetzt
+     */
+    private function saveTileAssignments(int $tileId, bool $replace = false): void
+    {
+        $userIds = $this->request->getPost('visible_user_ids');
+        $groupIds = $this->request->getPost('visible_group_ids');
+
+        $userIds = is_array($userIds) ? array_values(array_unique(array_map('intval', $userIds))) : [];
+        $groupIds = is_array($groupIds) ? array_values(array_unique(array_map('intval', $groupIds))) : [];
+
+        $tu = new TileUserModel();
+        $tg = new TileGroupModel();
+
+        if ($replace) {
+            $tu->where('tile_id', $tileId)->delete();
+            $tg->where('tile_id', $tileId)->delete();
+        }
+
+        foreach ($userIds as $uid) {
+            if ($uid > 0) {
+                $tu->insert(['tile_id' => $tileId, 'user_id' => $uid]);
+            }
+        }
+        foreach ($groupIds as $gid) {
+            if ($gid > 0) {
+                $tg->insert(['tile_id' => $tileId, 'group_id' => $gid]);
+            }
+        }
     }
 }
