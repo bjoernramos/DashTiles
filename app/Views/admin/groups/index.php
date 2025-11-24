@@ -31,7 +31,7 @@
               <tr>
                 <th style="width:60px">ID</th>
                 <th>Name</th>
-                <th style="width:180px">Aktionen</th>
+                <th style="width:240px">Aktionen</th>
               </tr>
             </thead>
             <tbody>
@@ -41,6 +41,9 @@
                   <td><?= esc($g['name']) ?></td>
                   <td>
                     <a class="btn btn-sm btn-outline-secondary" href="<?= site_url('admin/groups/'.(int)$g['id'].'/members') ?>">Mitglieder</a>
+                    <form method="post" action="<?= site_url('admin/groups/'.(int)$g['id'].'/delete') ?>" class="d-inline" onsubmit="return confirm('Gruppe wirklich löschen? Zugehörige Mitgliedschaften und Kachel-Zuordnungen werden entfernt.');">
+                      <button class="btn btn-sm btn-outline-danger" type="submit">Löschen</button>
+                    </form>
                   </td>
                 </tr>
               <?php endforeach; ?>

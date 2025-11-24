@@ -27,6 +27,7 @@
         <div class="table-responsive">
           <table class="table table-striped table-hover mb-0">
             <thead>
+              <?php $currentId = (int) (session()->get('user_id') ?? 0); ?>
               <tr>
                 <th scope="col">ID</th>
                 <th scope="col">Username</th>
@@ -62,6 +63,9 @@
                 <td>
                   <form method="post" action="<?= site_url('admin/users/' . (int) $u['id'] . '/toggle') ?>" class="d-inline">
                     <button class="btn btn-sm btn-outline-secondary" type="submit">Toggle</button>
+                  </form>
+                  <form method="post" action="<?= site_url('admin/users/' . (int) $u['id'] . '/delete') ?>" class="d-inline" onsubmit="return confirm('Diesen Benutzer inklusive persönlicher Kacheln löschen?');">
+                    <button class="btn btn-sm btn-outline-danger" type="submit" <?= ((int)$u['id'] === $currentId ? 'disabled' : '') ?>>Delete</button>
                   </form>
                 </td>
               </tr>

@@ -21,6 +21,7 @@ $routes->group('admin', ['filter' => 'admin'], static function (RouteCollection 
     $routes->post('users/store', 'Admin\\Users::store');
     $routes->post('users/(\d+)/toggle', 'Admin\\Users::toggle/$1');
     $routes->post('users/(\d+)/role', 'Admin\\Users::changeRole/$1');
+    $routes->post('users/(\d+)/delete', 'Admin\\Users::delete/$1');
 
     // Groups management
     $routes->get('groups', 'Admin\\Groups::index');
@@ -28,6 +29,7 @@ $routes->group('admin', ['filter' => 'admin'], static function (RouteCollection 
     $routes->post('groups/store', 'Admin\\Groups::store');
     $routes->get('groups/(\d+)/members', 'Admin\\Groups::editMembers/$1');
     $routes->post('groups/(\d+)/members', 'Admin\\Groups::updateMembers/$1');
+    $routes->post('groups/(\d+)/delete', 'Admin\\Groups::delete/$1');
 });
 
 // Dashboard routes (authenticated users)
