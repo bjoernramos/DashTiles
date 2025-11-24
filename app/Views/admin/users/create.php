@@ -7,6 +7,7 @@
   <?= view('partials/bootstrap_head') ?>
 </head>
 <body>
+<?= view('partials/nav') ?>
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h1 class="h3 m-0">Create Local User</h1>
