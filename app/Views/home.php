@@ -23,6 +23,7 @@
   <base href="<?= htmlspecialchars($basePath ?? '/toolpages', ENT_QUOTES) ?>/">
 </head>
 <body>
+  <?= view('partials/nav') ?>
   <div class="wrap">
     <div class="card">
       <div class="row">

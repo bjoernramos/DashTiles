@@ -9,7 +9,8 @@ Roadmap (current session)
 4) Auth (local + LDAP), filters, views
 5) Admin user management
 6) Per-user Dashboard Tiles (links, iframes, files) with layout & categories
-7) Feature tests and docs
+7) Admin-defined global tiles (visible for all users)
+8) Feature tests and docs
 
 Quickstart (Docker)
 - Requirements: Docker, Docker Compose
@@ -56,9 +57,10 @@ Per-user Dashboard Tiles
   - file: Upload a file stored under writable/uploads/{user_id}/ and served securely via /file/{tileId}
 - Categories: Tiles can be assigned a category; the dashboard renders rows per category.
 - Layout: Users can choose 1–6 columns; stored per user.
+- Global tiles: Admins can mark tiles as "global" so they are displayed for all users in addition to their personal tiles. Global file tiles are downloadable by any logged-in user.
 
 Schema (migrations included)
-- tiles: id, user_id, type(enum: link, iframe, file), title, url, icon, text, category, position, timestamps, soft-deletes
+- tiles: id, user_id, is_global (tinyint, default 0), type(enum: link, iframe, file), title, url, icon, text, category, position, timestamps, soft-deletes
 - user_settings: user_id (PK), columns, timestamps
 
 How to enable
@@ -66,7 +68,9 @@ How to enable
    docker compose exec app php spark migrate
 2) Log in and open http://localhost:8080/ — deine Kacheln erscheinen auf der Startseite.
 3) Öffne http://localhost:8080/dashboard um Spaltenzahl zu konfigurieren und Kacheln (Link, Iframe, Datei) anzulegen/zu bearbeiten und nach Kategorien zu gruppieren.
+4) Als Admin: Beim Anlegen/Bearbeiten kannst du die Checkbox „Global (für alle Nutzer anzeigen)“ setzen. Diese Kacheln erscheinen bei allen Nutzern zusätzlich zu deren eigenen.
 
 Security notes
-- File tiles are served only to the owning user via a controller that verifies ownership.
+- File tiles are served only to the owning user via a controller that verifies ownership. For global file tiles, download is allowed for any logged-in user.
 - Uploaded files are stored under writable/uploads/{user_id}/ and are not web-accessible directly via Nginx.
+- Only admins can mark tiles as global or delete global tiles; normal users cannot modify global tiles.

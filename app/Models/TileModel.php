@@ -13,13 +13,14 @@ class TileModel extends Model
     protected $useTimestamps = true;
 
     protected $allowedFields = [
-        'user_id', 'type', 'title', 'url', 'icon', 'text', 'category', 'position',
+        'user_id', 'is_global', 'type', 'title', 'url', 'icon', 'text', 'category', 'position',
     ];
 
     protected $returnType = 'array';
 
     protected $validationRules = [
         'user_id'  => 'required|is_natural_no_zero',
+        'is_global'=> 'permit_empty|in_list[0,1]',
         'type'     => 'required|in_list[link,iframe,file]',
         'title'    => 'required|min_length[1]|max_length[190]',
         'url'      => 'permit_empty|max_length[1024]',
@@ -31,6 +32,13 @@ class TileModel extends Model
 
     public function forUser(int $userId)
     {
-        return $this->where('user_id', $userId)->orderBy('category', 'ASC')->orderBy('position', 'ASC')->orderBy('id', 'ASC');
+        // Zeige eigene Kacheln oder globale Kacheln (is_global = 1)
+        return $this->groupStart()
+                ->where('user_id', $userId)
+                ->orWhere('is_global', 1)
+            ->groupEnd()
+            ->orderBy('category', 'ASC')
+            ->orderBy('position', 'ASC')
+            ->orderBy('id', 'ASC');
     }
 }

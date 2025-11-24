@@ -22,6 +22,7 @@
   </style>
 </head>
 <body>
+  <?= view('partials/nav') ?>
   <div class="wrap">
     <div class="row">
       <h1 style="margin:0">Mein Dashboard</h1>
@@ -30,6 +31,14 @@
         <a class="btn secondary" href="/logout">Logout</a>
       </div>
     </div>
+
+    <?php 
+      // Sichere Defaults, falls Variablen nicht gesetzt sind
+      $role = $role ?? 'user';
+      $userId = isset($userId) ? (int)$userId : 0;
+      $columns = (int)($columns ?? 3);
+      $grouped = is_array($grouped ?? null) ? $grouped : [];
+    ?>
 
     <?php if (session()->getFlashdata('error')): ?>
       <div class="card" style="border-color:#7a2a58;background:#3a1430"><?= esc(session()->getFlashdata('error')) ?></div>
@@ -44,7 +53,7 @@
           <label for="columns">Spalten</label>
           <select id="columns" name="columns">
             <?php for ($i=1;$i<=6;$i++): ?>
-              <option value="<?= $i ?>" <?= ($columns === $i ? 'selected' : '') ?>><?= $i ?></option>
+              <option value="<?= $i ?>" <?= ((int)$columns === $i ? 'selected' : '') ?>><?= $i ?></option>
             <?php endfor; ?>
           </select>
         </div>
@@ -85,6 +94,9 @@
                 <input name="position" type="number" value="0">
               </div>
             </div>
+            <?php if (($role) === 'admin'): ?>
+              <label style="margin-top:.5rem"><input type="checkbox" name="is_global" value="1"> Global (für alle Nutzer anzeigen)</label>
+            <?php endif; ?>
             <p style="margin-top:8px"><button class="btn" type="submit">Hinzufügen</button></p>
           </form>
 
@@ -105,6 +117,9 @@
                 <input name="position" type="number" value="0">
               </div>
             </div>
+            <?php if (($role) === 'admin'): ?>
+              <label style="margin-top:.5rem"><input type="checkbox" name="is_global" value="1"> Global (für alle Nutzer anzeigen)</label>
+            <?php endif; ?>
             <p style="margin-top:8px"><button class="btn" type="submit">Hinzufügen</button></p>
           </form>
 
@@ -125,6 +140,9 @@
                 <input name="position" type="number" value="0">
               </div>
             </div>
+            <?php if (($role) === 'admin'): ?>
+              <label style="margin-top:.5rem"><input type="checkbox" name="is_global" value="1"> Global (für alle Nutzer anzeigen)</label>
+            <?php endif; ?>
             <p style="margin-top:8px"><button class="btn" type="submit">Hinzufügen</button></p>
           </form>
         </div>
@@ -132,7 +150,7 @@
     </div>
 
     <?php 
-      $cols = max(1, min(6, (int)($columns ?? 3)));
+      $cols = max(1, min(6, (int)$columns));
       $gridStyle = 'grid-template-columns: repeat(' . $cols . ', 1fr);';
     ?>
     <?php foreach ($grouped as $category => $list): ?>
@@ -141,8 +159,8 @@
         <div class="grid" style="<?= $gridStyle ?>">
           <?php foreach ($list as $tile): ?>
             <div class="tile">
-              <div class="row" style="justify-content:space-between">
-                <h4>
+              <div class="row" style="justify-content:space-between;align-items:center">
+                <h4 style="display:flex;align-items:center;gap:6px;margin:0">
                   <?php if (!empty($tile['icon'])): ?>
                     <?php $icon = (string) $tile['icon']; $isImg = str_starts_with($icon, 'http://') || str_starts_with($icon, 'https://') || str_starts_with($icon, '/'); ?>
                     <?php if ($isImg): ?>
@@ -152,10 +170,24 @@
                     <?php endif; ?>
                   <?php endif; ?>
                   <?= esc($tile['title']) ?>
+                  <?php if (!empty($tile['is_global']) && (int)$tile['is_global'] === 1): ?>
+                    <span class="muted" style="font-size:.8rem;background:#273158;border:1px solid #2a3358;padding:2px 6px;border-radius:999px;margin-left:8px">Global</span>
+                  <?php endif; ?>
                 </h4>
-                <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/delete" onsubmit="return confirm('Kachel löschen?')">
-                  <button class="btn secondary" type="submit">Löschen</button>
-                </form>
+                <?php 
+                  $canManage = false;
+                  if (isset($userId)) {
+                    $isOwner = ((int)($tile['user_id'] ?? 0) === (int)$userId);
+                    $isGlobal = ((int)($tile['is_global'] ?? 0) === 1);
+                    $isAdmin = (($role ?? 'user') === 'admin');
+                    $canManage = $isOwner || ($isAdmin && $isGlobal);
+                  }
+                ?>
+                <?php if ($canManage): ?>
+                  <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/delete" onsubmit="return confirm('Kachel löschen?')">
+                    <button class="btn secondary" type="submit">Löschen</button>
+                  </form>
+                <?php endif; ?>
               </div>
               <?php if ($tile['type'] === 'link'): ?>
                 <p>
@@ -174,6 +206,7 @@
                   <?php endif; ?>
                 </p>
               <?php endif; ?>
+              <?php if ($canManage): ?>
               <details>
                 <summary class="muted">Bearbeiten</summary>
                 <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>" enctype="multipart/form-data" style="margin-top:.5rem">
@@ -211,9 +244,13 @@
                       <input name="position" type="number" value="<?= (int)($tile['position'] ?? 0) ?>">
                     </div>
                   </div>
+                  <?php if (($role ?? 'user') === 'admin'): ?>
+                    <label style="margin-top:.5rem"><input type="checkbox" name="is_global" value="1" <?= (!empty($tile['is_global']) && (int)$tile['is_global'] === 1 ? 'checked' : '') ?>> Global (für alle Nutzer anzeigen)</label>
+                  <?php endif; ?>
                   <p style="margin-top:8px"><button class="btn" type="submit">Speichern</button></p>
                 </form>
               </details>
+              <?php endif; ?>
             </div>
           <?php endforeach; ?>
         </div>

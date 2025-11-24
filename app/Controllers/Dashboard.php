@@ -11,6 +11,7 @@ class Dashboard extends BaseController
     {
         $session = session();
         $userId = (int) $session->get('user_id');
+        $role = (string) ($session->get('role') ?? 'user');
         if ($userId <= 0) {
             return redirect()->to('/login');
         }
@@ -47,6 +48,8 @@ class Dashboard extends BaseController
             'columns'  => (int) ($settings['columns'] ?? 3),
             'tiles'    => $tiles,
             'grouped'  => $grouped,
+            'userId'   => $userId,
+            'role'     => $role,
         ]);
     }
 
@@ -97,6 +100,8 @@ class Dashboard extends BaseController
             $url = trim((string) $this->request->getPost('url')) ?: null;
         }
 
+        $isGlobalInput = $this->request->getPost('is_global');
+        $isAdmin = session()->get('role') === 'admin';
         $data = [
             'user_id'  => $userId,
             'type'     => in_array($type, ['link','iframe','file'], true) ? $type : 'link',
@@ -107,6 +112,11 @@ class Dashboard extends BaseController
             'category' => trim((string) $this->request->getPost('category')) ?: null,
             'position' => (int) ($this->request->getPost('position') ?? 0),
         ];
+
+        // Admins dürfen eine Kachel als global markieren
+        if ($isAdmin && ($isGlobalInput === '1' || $isGlobalInput === 1)) {
+            $data['is_global'] = 1;
+        }
 
         $model = new TileModel();
         if (! $model->insert($data)) {
@@ -120,7 +130,10 @@ class Dashboard extends BaseController
         $userId = (int) session()->get('user_id');
         $model = new TileModel();
         $tile = $model->find($id);
-        if (! $tile || (int) $tile['user_id'] !== $userId) {
+        $isAdmin = session()->get('role') === 'admin';
+        $isOwner = $tile && (int) $tile['user_id'] === $userId;
+        $isGlobal = $tile && (int) ($tile['is_global'] ?? 0) === 1;
+        if (! $tile || (! $isOwner && ! ($isAdmin && $isGlobal))) {
             return redirect()->to('/dashboard')->with('error', 'Kachel nicht gefunden');
         }
 
@@ -152,6 +165,12 @@ class Dashboard extends BaseController
             'position' => (int) ($this->request->getPost('position') ?? $tile['position']),
         ];
 
+        // Nur Admins dürfen die Global-Markierung setzen/entfernen
+        if ($isAdmin) {
+            $isGlobalInput = $this->request->getPost('is_global');
+            $data['is_global'] = ($isGlobalInput === '1' || $isGlobalInput === 1) ? 1 : 0;
+        }
+
         if (! $model->update($id, $data)) {
             return redirect()->back()->withInput()->with('error', implode("\n", $model->errors() ?: ['Aktualisierung fehlgeschlagen']));
         }
@@ -163,7 +182,10 @@ class Dashboard extends BaseController
         $userId = (int) session()->get('user_id');
         $model = new TileModel();
         $tile = $model->find($id);
-        if (! $tile || (int) $tile['user_id'] !== $userId) {
+        $isAdmin = session()->get('role') === 'admin';
+        $isOwner = $tile && (int) $tile['user_id'] === $userId;
+        $isGlobal = $tile && (int) ($tile['is_global'] ?? 0) === 1;
+        if (! $tile || (! $isOwner && ! ($isAdmin && $isGlobal))) {
             return redirect()->to('/dashboard')->with('error', 'Kachel nicht gefunden');
         }
         $model->delete($id);
@@ -175,7 +197,9 @@ class Dashboard extends BaseController
         $userId = (int) session()->get('user_id');
         $model = new TileModel();
         $tile = $model->find($id);
-        if (! $tile || (int) $tile['user_id'] !== $userId || $tile['type'] !== 'file' || empty($tile['url'])) {
+        // Zugriff erlaubt: Besitzer oder (global & Datei) für alle Nutzer
+        $isGlobal = $tile && (int) ($tile['is_global'] ?? 0) === 1;
+        if (! $tile || (! $isGlobal && (int) $tile['user_id'] !== $userId) || $tile['type'] !== 'file' || empty($tile['url'])) {
             return $this->response->setStatusCode(404, 'Not found');
         }
         $relative = $tile['url']; // e.g., uploads/123/filename.ext
