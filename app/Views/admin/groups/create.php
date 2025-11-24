@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= esc(lang('App.actions.new')) ?> <?= esc(lang('App.nav.groups')) ?> • <?= esc(lang('App.nav.admin')) ?> • <?= esc(lang('App.brand')) ?></title>
+  <title><?= esc(lang('App.actions.new')) ?> <?= esc(lang('App.pages.groups.index_title')) ?> • <?= esc(lang('App.nav.admin')) ?> • <?= esc(lang('App.brand')) ?></title>
   <?= view('partials/bootstrap_head') ?>
 </head>
 <body>
   <?= view('partials/nav') ?>
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-      <h1 class="h3 m-0"><?= esc(lang('App.actions.new')) ?> <?= esc(lang('App.nav.groups')) ?></h1>
+      <h1 class="h3 m-0"><?= esc(lang('App.actions.new')) ?> <?= esc(lang('App.pages.groups.index_title')) ?></h1>
       <div>
         <a class="btn btn-secondary" href="<?= site_url('admin/groups') ?>"><?= esc(lang('App.actions.back')) ?></a>
       </div>
@@ -24,7 +24,7 @@
       <div class="card-body">
         <form method="post" action="<?= site_url('admin/groups/store') ?>" class="row g-3">
           <div class="col-12 col-md-6">
-            <label class="form-label" for="name">Gruppenname</label>
+            <label class="form-label" for="name"><?= esc(lang('App.pages.groups.group_name')) ?></label>
             <input id="name" name="name" class="form-control" required>
           </div>
           <div class="col-12">

@@ -25,7 +25,11 @@ class Groups extends BaseController
             $groupUserIds[$gid] = $groupUserIds[$gid] ?? [];
             $groupUserIds[$gid][] = $uid;
         }
-        $allUsers = $userModel->select('id, display_name, username')->where('is_active', 1)->orderBy('display_name','asc')->findAll();
+        // Zeige alle Benutzer (aktiv/inaktiv), damit vollständige Mitgliedsverwaltung möglich ist
+        $allUsers = $userModel
+            ->select('id, display_name, username')
+            ->orderBy('display_name','asc')
+            ->findAll();
 
         return view('admin/groups/index', [
             'groups' => $groups,

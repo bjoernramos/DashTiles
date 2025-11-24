@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mein Dashboard • toolpages</title>
+  <title><?= esc(lang('App.pages.dashboard.title')) ?> • <?= esc(lang('App.brand')) ?></title>
   <?= view('partials/bootstrap_head') ?>
 </head>
 <body>
   <?= view('partials/nav') ?>
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-      <h1 class="h3 m-0">Mein Dashboard</h1>
+      <h1 class="h3 m-0"><?= esc(lang('App.pages.dashboard.title')) ?></h1>
       <div class="d-flex gap-2">
-        <a class="btn btn-secondary" href="/">Zurück</a>
-        <a class="btn btn-outline-secondary" href="/logout">Logout</a>
+        <a class="btn btn-secondary" href="/"><?= esc(lang('App.pages.dashboard.back')) ?></a>
+        <a class="btn btn-outline-secondary" href="/logout"><?= esc(lang('App.pages.dashboard.logout')) ?></a>
       </div>
     </div>
 
@@ -36,7 +36,7 @@
       <div class="card-body">
         <form class="row g-3 align-items-end" method="post" action="/dashboard/settings">
           <div class="col-auto">
-            <label for="columns" class="form-label">Spalten</label>
+            <label for="columns" class="form-label"><?= esc(lang('App.pages.dashboard.columns')) ?></label>
             <select id="columns" name="columns" class="form-select">
               <?php for ($i=1;$i<=6;$i++): ?>
                 <option value="<?= $i ?>" <?= ((int)$columns === $i ? 'selected' : '') ?>><?= $i ?></option>
@@ -44,7 +44,7 @@
             </select>
           </div>
           <div class="col-auto">
-            <button class="btn btn-primary" type="submit">Layout speichern</button>
+            <button class="btn btn-primary" type="submit"><?= esc(lang('App.pages.dashboard.save_layout')) ?></button>
           </div>
         </form>
       </div>
@@ -53,10 +53,10 @@
     <div class="card shadow-sm mb-3">
       <div class="card-body d-flex justify-content-between align-items-center">
         <div>
-          <strong>Kachel hinzufügen</strong>
-          <div class="text-muted small">Link, Datei oder iFrame per Tabs</div>
+          <strong><?= esc(lang('App.pages.dashboard.add_tile')) ?></strong>
+          <div class="text-muted small"><?= esc(lang('App.pages.dashboard.tabs.link')) ?>, <?= esc(lang('App.pages.dashboard.tabs.file')) ?> <?= esc(lang('App.pages.dashboard.tabs.iframe')) ?></div>
         </div>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTileModal">Neu</button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTileModal"><?= esc(lang('App.pages.dashboard.add')) ?></button>
       </div>
     </div>
 
@@ -65,19 +65,19 @@
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Kachel hinzufügen</h5>
+            <h5 class="modal-title"><?= esc(lang('App.pages.dashboard.add_tile')) ?></h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <ul class="nav nav-tabs" role="tablist">
               <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="tab-link" data-bs-toggle="tab" data-bs-target="#pane-link" type="button" role="tab">Link</button>
+                <button class="nav-link active" id="tab-link" data-bs-toggle="tab" data-bs-target="#pane-link" type="button" role="tab"><?= esc(lang('App.pages.dashboard.tabs.link')) ?></button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab-file" data-bs-toggle="tab" data-bs-target="#pane-file" type="button" role="tab">Datei</button>
+                <button class="nav-link" id="tab-file" data-bs-toggle="tab" data-bs-target="#pane-file" type="button" role="tab"><?= esc(lang('App.pages.dashboard.tabs.file')) ?></button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab-iframe" data-bs-toggle="tab" data-bs-target="#pane-iframe" type="button" role="tab">iFrame</button>
+                <button class="nav-link" id="tab-iframe" data-bs-toggle="tab" data-bs-target="#pane-iframe" type="button" role="tab"><?= esc(lang('App.pages.dashboard.tabs.iframe')) ?></button>
               </li>
             </ul>
             <div class="tab-content mt-3">
@@ -85,42 +85,42 @@
                 <form method="post" action="/dashboard/tile" id="form-add-link">
                   <input type="hidden" name="type" value="link">
                   <div class="mb-2">
-                    <label class="form-label">Titel</label>
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.title')) ?></label>
                     <input name="title" class="form-control" required>
                   </div>
                   <div class="mb-2">
-                    <label class="form-label">URL</label>
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.url')) ?></label>
                     <input name="url" class="form-control" placeholder="https://..." required>
                   </div>
                   <div class="row g-2 mb-2">
                     <div class="col-6">
-                      <label class="form-label">Icon</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.icon')) ?></label>
                       <input name="icon" class="form-control" placeholder="z.B. fa-solid fa-link oder Bild-URL">
                     </div>
                     <div class="col-6">
-                      <label class="form-label">Text</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.text')) ?></label>
                       <input name="text" class="form-control" placeholder="optional">
                     </div>
                   </div>
                   <div class="row g-2 mb-2">
                     <div class="col-6">
-                      <label class="form-label">Kategorie</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.category')) ?></label>
                       <input name="category" class="form-control" placeholder="z.B. Monitoring">
                     </div>
                     <div class="col-6">
-                      <label class="form-label">Position</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.position')) ?></label>
                       <input name="position" type="number" class="form-control" value="0">
                     </div>
                   </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" name="is_global" value="1" id="lg1">
-                    <label class="form-check-label" for="lg1">Global (für alle Nutzer anzeigen)</label>
+                    <label class="form-check-label" for="lg1"><?= esc(lang('App.pages.dashboard.labels.global')) ?></label>
                   </div>
                   <?php endif; ?>
                   <div class="row g-2 mt-1">
                     <div class="col-12 col-lg-6">
-                      <label class="form-label">Nur für bestimmte Benutzer</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.users')) ?></label>
                       <select class="form-select" name="visible_user_ids[]" multiple size="8">
                         <?php foreach (($usersList ?? []) as $u): ?>
                           <?php $udisp = trim(($u['display_name'] ?? '') ?: ($u['username'] ?? (string)$u['id'])); ?>
@@ -129,7 +129,7 @@
                       </select>
                     </div>
                     <div class="col-12 col-lg-6">
-                      <label class="form-label">Nur für bestimmte Gruppen</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.groups')) ?></label>
                       <select class="form-select" name="visible_group_ids[]" multiple size="8">
                         <?php foreach (($groupsList ?? []) as $g): ?>
                           <option value="<?= (int)$g['id'] ?>"><?= esc($g['name']) ?></option>
@@ -143,32 +143,32 @@
                 <form method="post" action="/dashboard/tile" enctype="multipart/form-data" id="form-add-file">
                   <input type="hidden" name="type" value="file">
                   <div class="mb-2">
-                    <label class="form-label">Titel</label>
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.title')) ?></label>
                     <input name="title" class="form-control" required>
                   </div>
                   <div class="mb-2">
-                    <label class="form-label">Datei</label>
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.file')) ?></label>
                     <input type="file" name="file" class="form-control" required>
                   </div>
                   <div class="row g-2 mb-2">
                     <div class="col-6">
-                      <label class="form-label">Kategorie</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.category')) ?></label>
                       <input name="category" class="form-control" placeholder="z.B. Doku">
                     </div>
                     <div class="col-6">
-                      <label class="form-label">Position</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.position')) ?></label>
                       <input name="position" type="number" class="form-control" value="0">
                     </div>
                   </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" name="is_global" value="1" id="fg1">
-                    <label class="form-check-label" for="fg1">Global (für alle Nutzer anzeigen)</label>
+                    <label class="form-check-label" for="fg1"><?= esc(lang('App.pages.dashboard.labels.global')) ?></label>
                   </div>
                   <?php endif; ?>
                   <div class="row g-2 mt-1">
                     <div class="col-12 col-lg-6">
-                      <label class="form-label">Nur für bestimmte Benutzer</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.users')) ?></label>
                       <select class="form-select" name="visible_user_ids[]" multiple size="8">
                         <?php foreach (($usersList ?? []) as $u): ?>
                           <?php $udisp = trim(($u['display_name'] ?? '') ?: ($u['username'] ?? (string)$u['id'])); ?>
@@ -177,7 +177,7 @@
                       </select>
                     </div>
                     <div class="col-12 col-lg-6">
-                      <label class="form-label">Nur für bestimmte Gruppen</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.groups')) ?></label>
                       <select class="form-select" name="visible_group_ids[]" multiple size="8">
                         <?php foreach (($groupsList ?? []) as $g): ?>
                           <option value="<?= (int)$g['id'] ?>"><?= esc($g['name']) ?></option>
@@ -191,32 +191,32 @@
                 <form method="post" action="/dashboard/tile" id="form-add-iframe">
                   <input type="hidden" name="type" value="iframe">
                   <div class="mb-2">
-                    <label class="form-label">Titel</label>
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.title')) ?></label>
                     <input name="title" class="form-control" required>
                   </div>
                   <div class="mb-2">
-                    <label class="form-label">URL</label>
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.url')) ?></label>
                     <input name="url" class="form-control" placeholder="https://..." required>
                   </div>
                   <div class="row g-2 mb-2">
                     <div class="col-6">
-                      <label class="form-label">Kategorie</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.category')) ?></label>
                       <input name="category" class="form-control" placeholder="z.B. Dashboards">
                     </div>
                     <div class="col-6">
-                      <label class="form-label">Position</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.position')) ?></label>
                       <input name="position" type="number" class="form-control" value="0">
                     </div>
                   </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" name="is_global" value="1" id="ig1">
-                    <label class="form-check-label" for="ig1">Global (für alle Nutzer anzeigen)</label>
+                    <label class="form-check-label" for="ig1"><?= esc(lang('App.pages.dashboard.labels.global')) ?></label>
                   </div>
                   <?php endif; ?>
                   <div class="row g-2 mt-1">
                     <div class="col-12 col-lg-6">
-                      <label class="form-label">Nur für bestimmte Benutzer</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.users')) ?></label>
                       <select class="form-select" name="visible_user_ids[]" multiple size="8">
                         <?php foreach (($usersList ?? []) as $u): ?>
                           <?php $udisp = trim(($u['display_name'] ?? '') ?: ($u['username'] ?? (string)$u['id'])); ?>
@@ -225,7 +225,7 @@
                       </select>
                     </div>
                     <div class="col-12 col-lg-6">
-                      <label class="form-label">Nur für bestimmte Gruppen</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.groups')) ?></label>
                       <select class="form-select" name="visible_group_ids[]" multiple size="8">
                         <?php foreach (($groupsList ?? []) as $g): ?>
                           <option value="<?= (int)$g['id'] ?>"><?= esc($g['name']) ?></option>
@@ -238,9 +238,9 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= esc(lang('App.actions.close')) ?></button>
             <!-- Default submit is the active tab's form; use JS-free by assigning form attribute to link tab -->
-            <button type="submit" class="btn btn-primary" form="form-add-link" id="submitAddTile">Hinzufügen</button>
+            <button type="submit" class="btn btn-primary" form="form-add-link" id="submitAddTile"><?= esc(lang('App.actions.create')) ?></button>
           </div>
         </div>
       </div>
@@ -301,7 +301,7 @@
                     <?php endif; ?>
                     <?= esc($tile['title']) ?>
                     <?php if (!empty($tile['is_global']) && (int)$tile['is_global'] === 1): ?>
-                      <span class="badge bg-secondary ms-2">Global</span>
+                      <span class="badge bg-secondary ms-2"><?= esc(lang('App.pages.dashboard.global_badge')) ?></span>
                     <?php endif; ?>
                   </h4>
                   <?php 
@@ -315,9 +315,9 @@
                   ?>
                   <?php if ($canManage): ?>
                     <div class="btn-group">
-                      <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>">Bearbeiten</button>
-                      <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/delete" onsubmit="return confirm('Kachel löschen?')" class="m-0 d-inline">
-                        <button class="btn btn-sm btn-outline-danger" type="submit">Löschen</button>
+                      <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>"><?= esc(lang('App.actions.edit')) ?></button>
+                      <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/delete" onsubmit="return confirm('<?= esc(lang('App.pages.dashboard.delete_tile_confirm')) ?>')" class="m-0 d-inline">
+                        <button class="btn btn-sm btn-outline-danger" type="submit"><?= esc(lang('App.actions.delete')) ?></button>
                       </form>
                     </div>
                   <?php endif; ?>
@@ -339,7 +339,7 @@
                   <div class="modal-dialog modal-lg modal-dialog-scrollable">
                     <div class="modal-content">
                       <div class="modal-header">
-                        <h5 class="modal-title">Kachel bearbeiten • <?= esc($tile['title']) ?></h5>
+                        <h5 class="modal-title"><?= esc(lang('App.pages.dashboard.edit_tile')) ?> • <?= esc($tile['title']) ?></h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                       </div>
                       <div class="modal-body">
@@ -347,46 +347,46 @@
                   <input type="hidden" name="type" value="<?= esc($tile['type']) ?>">
                   <div class="row g-2">
                     <div class="col-12 col-md-6">
-                      <label class="form-label">Titel</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.title')) ?></label>
                       <input name="title" class="form-control" value="<?= esc($tile['title']) ?>">
                     </div>
                     <div class="col-12 col-md-6">
-                      <label class="form-label">Kategorie</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.category')) ?></label>
                       <input name="category" class="form-control" value="<?= esc($tile['category'] ?? '') ?>">
                     </div>
                   </div>
                   <?php if ($tile['type'] !== 'file'): ?>
-                    <label class="form-label mt-2">URL</label>
+                    <label class="form-label mt-2"><?= esc(lang('App.pages.dashboard.labels.url')) ?></label>
                     <input name="url" class="form-control" value="<?= esc($tile['url'] ?? '') ?>">
                   <?php else: ?>
-                    <label class="form-label mt-2">Neue Datei (optional)</label>
+                    <label class="form-label mt-2"><?= esc(lang('App.pages.dashboard.labels.new_file')) ?></label>
                     <input type="file" name="file" class="form-control">
                   <?php endif; ?>
                   <div class="row g-2 mt-1">
                     <div class="col-12 col-md-6">
-                      <label class="form-label">Icon</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.icon')) ?></label>
                       <input name="icon" class="form-control" value="<?= esc($tile['icon'] ?? '') ?>">
                     </div>
                     <div class="col-12 col-md-6">
-                      <label class="form-label">Text</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.text')) ?></label>
                       <input name="text" class="form-control" value="<?= esc($tile['text'] ?? '') ?>">
                     </div>
                   </div>
                   <div class="row g-2 mt-1">
                     <div class="col-12 col-md-6">
-                      <label class="form-label">Position</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.position')) ?></label>
                       <input name="position" type="number" class="form-control" value="<?= (int)($tile['position'] ?? 0) ?>">
                     </div>
                   </div>
                   <?php if (($role ?? 'user') === 'admin'): ?>
                     <div class="form-check mt-2">
                       <input class="form-check-input" type="checkbox" name="is_global" value="1" id="gg<?= (int)$tile['id'] ?>" <?= (!empty($tile['is_global']) && (int)$tile['is_global'] === 1 ? 'checked' : '') ?>>
-                      <label class="form-check-label" for="gg<?= (int)$tile['id'] ?>">Global (für alle Nutzer anzeigen)</label>
+                      <label class="form-check-label" for="gg<?= (int)$tile['id'] ?>"><?= esc(lang('App.pages.dashboard.labels.global')) ?></label>
                     </div>
                   <?php endif; ?>
                   <div class="row g-2 mt-1">
                     <div class="col-12 col-md-6">
-                      <label class="form-label">Benutzer, die diese Kachel sehen dürfen</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.allowed_users')) ?></label>
                       <?php $selUsers = (array) (($tileUserMap ?? [])[(int)$tile['id']] ?? []); ?>
                       <select class="form-select" name="visible_user_ids[]" multiple size="8">
                         <?php foreach (($usersList ?? []) as $u): ?>
@@ -396,7 +396,7 @@
                       </select>
                     </div>
                     <div class="col-12 col-md-6">
-                      <label class="form-label">Gruppen, die diese Kachel sehen dürfen</label>
+                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.allowed_groups')) ?></label>
                       <?php $selGroups = (array) (($tileGroupMap ?? [])[(int)$tile['id']] ?? []); ?>
                       <select class="form-select" name="visible_group_ids[]" multiple size="8">
                         <?php foreach (($groupsList ?? []) as $g): ?>
@@ -407,8 +407,8 @@
                   </div>
                       </div>
                       <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
-                        <button type="submit" class="btn btn-primary" form="editForm<?= (int)$tile['id'] ?>">Speichern</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= esc(lang('App.actions.close')) ?></button>
+                        <button type="submit" class="btn btn-primary" form="editForm<?= (int)$tile['id'] ?>"><?= esc(lang('App.actions.save')) ?></button>
                       </div>
                     </div>
                   </div>

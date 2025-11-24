@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>toolpages • Start</title>
+  <title><?= esc(lang('App.brand')) ?> • <?= esc(lang('App.pages.home.title')) ?></title>
   <?= view('partials/bootstrap_head') ?>
   <base href="<?= htmlspecialchars($basePath ?? '/toolpages', ENT_QUOTES) ?>/">
 </head>
@@ -13,11 +13,11 @@
     <div class="card shadow-sm mb-3">
       <div class="card-body">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <h1 class="h3 m-0">toolpages</h1>
+          <h1 class="h3 m-0"><?= esc(lang('App.brand')) ?></h1>
         </div>
 
         <?php if (!session()->get('user_id')): ?>
-          <p class="mb-0">Nach dem Login werden deine Kacheln direkt hier auf der Startseite angezeigt.</p>
+          <p class="mb-0"><?= esc(lang('App.pages.home.welcome_logged_out')) ?></p>
         <?php endif; ?>
         <?php if (session()->getFlashdata('error')): ?>
           <div class="alert alert-danger mt-3" role="alert"><?= esc(session()->getFlashdata('error')) ?></div>
@@ -41,9 +41,9 @@
             <div class="card-body">
               <div class="d-flex align-items-center justify-content-between mb-2">
                 <h3 class="h5 m-0"><?= esc($category) ?></h3>
-                <button class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" type="button" data-bs-toggle="collapse" data-bs-target="#<?= esc($catId) ?>" aria-expanded="true" aria-controls="<?= esc($catId) ?>" title="Kategorie ein-/ausklappen">
+                <button class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" type="button" data-bs-toggle="collapse" data-bs-target="#<?= esc($catId) ?>" aria-expanded="true" aria-controls="<?= esc($catId) ?>" title="<?= esc(lang('App.pages.home.collapse_toggle')) ?>">
                   <span class="material-symbols-outlined" aria-hidden="true" data-cat-icon="<?= esc($catId) ?>">expand_less</span>
-                  <span class="visually-hidden">Ein-/Ausklappen</span>
+                  <span class="visually-hidden"><?= esc(lang('App.pages.home.collapse_label')) ?></span>
                 </button>
               </div>
               <div id="<?= esc($catId) ?>" class="collapse show" data-cat-id="<?= esc($catId) ?>">
@@ -99,7 +99,7 @@
           </div>
         <?php endforeach; ?>
       <?php else: ?>
-        <div class="alert alert-info">Noch keine Kacheln vorhanden. Lege welche im <a href="dashboard">Dashboard</a> an.</div>
+        <div class="alert alert-info"><?= esc(lang('App.pages.home.no_tiles')) ?> <a href="dashboard">Dashboard</a>.</div>
       <?php endif; ?>
     <?php endif; ?>
   </div>

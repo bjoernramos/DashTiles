@@ -3,16 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= esc(lang('App.nav.users')) ?> • <?= esc(lang('App.nav.admin')) ?></title>
+  <title><?= esc(lang('App.pages.users.index_title')) ?> • <?= esc(lang('App.nav.admin')) ?></title>
   <?= view('partials/bootstrap_head') ?>
 </head>
 <body>
 <?= view('partials/nav') ?>
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h1 class="h3 m-0"><?= esc(lang('App.nav.admin')) ?> • <?= esc(lang('App.nav.users')) ?></h1>
+      <h1 class="h3 m-0"><?= esc(lang('App.nav.admin')) ?> • <?= esc(lang('App.pages.users.index_title')) ?></h1>
       <div class="d-flex gap-2">
-        <a class="btn btn-primary" href="<?= site_url('admin/users/create') ?>"><?= esc(lang('App.actions.new')) ?> <?= esc(lang('App.nav.users')) ?></a>
+        <a class="btn btn-primary" href="<?= site_url('admin/users/create') ?>"><?= esc(lang('App.actions.new')) ?> <?= esc(lang('App.pages.users.index_title')) ?></a>
         <a class="btn btn-secondary" href="<?= site_url('/') ?>"><?= esc(lang('App.actions.back')) ?></a>
       </div>
     </div>
@@ -29,14 +29,14 @@
             <thead>
               <?php $currentId = (int) (session()->get('user_id') ?? 0); ?>
               <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Username</th>
-                <th scope="col">Name</th>
-                <th scope="col">Email</th>
-                <th scope="col">Source</th>
-                <th scope="col">Role</th>
-                <th scope="col">Active</th>
-                <th scope="col">Actions</th>
+                <th scope="col"><?= esc(lang('App.pages.users.id')) ?></th>
+                <th scope="col"><?= esc(lang('App.pages.users.username')) ?></th>
+                <th scope="col"><?= esc(lang('App.pages.users.display_name')) ?></th>
+                <th scope="col"><?= esc(lang('App.pages.users.email')) ?></th>
+                <th scope="col"><?= esc(lang('App.pages.users.source')) ?></th>
+                <th scope="col"><?= esc(lang('App.pages.users.role')) ?></th>
+                <th scope="col"><?= esc(lang('App.pages.users.active')) ?></th>
+                <th scope="col"><?= esc(lang('App.pages.groups.actions')) ?></th>
               </tr>
             </thead>
             <tbody>
@@ -57,12 +57,12 @@
                 </td>
                 <td>
                   <span class="badge <?= ((int)$u['is_active'] === 1 ? 'bg-success' : 'bg-secondary') ?>">
-                    <?= ((int) $u['is_active'] === 1 ? 'yes' : 'no') ?>
+                    <?= ((int) $u['is_active'] === 1 ? esc(lang('App.pages.users.yes')) : esc(lang('App.pages.users.no'))) ?>
                   </span>
                 </td>
                 <td>
                   <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editUserModal<?= (int)$u['id'] ?>"><?= esc(lang('App.actions.edit')) ?></button>
-                  <form method="post" action="<?= site_url('admin/users/' . (int) $u['id'] . '/delete') ?>" class="d-inline" onsubmit="return confirm('Diesen Benutzer inklusive persönlicher Kacheln löschen?');">
+                  <form method="post" action="<?= site_url('admin/users/' . (int) $u['id'] . '/delete') ?>" class="d-inline" onsubmit="return confirm('<?= esc(lang('App.pages.users.delete_confirm')) ?>');">
                     <button class="btn btn-sm btn-outline-danger" type="submit" <?= ((int)$u['id'] === $currentId ? 'disabled' : '') ?>><?= esc(lang('App.actions.delete')) ?></button>
                   </form>
                 </td>
@@ -72,12 +72,12 @@
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header">
-                      <h5 class="modal-title"><?= esc(lang('App.actions.edit')) ?> User • <?= esc($u['username']) ?></h5>
+                      <h5 class="modal-title"><?= esc(lang('App.pages.users.edit_user')) ?> • <?= esc($u['username']) ?></h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                       <div class="mb-3">
-                        <label class="form-label">Role</label>
+                        <label class="form-label"><?= esc(lang('App.pages.users.role')) ?></label>
                         <form method="post" action="<?= site_url('admin/users/' . (int)$u['id'] . '/role') ?>" id="formRole<?= (int)$u['id'] ?>">
                           <select name="role" class="form-select">
                             <option value="user" <?= ($u['role'] === 'user' ? 'selected' : '') ?>>user</option>
@@ -86,11 +86,11 @@
                         </form>
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Active</label>
+                        <label class="form-label"><?= esc(lang('App.pages.users.active')) ?></label>
                         <div>
                           <form method="post" action="<?= site_url('admin/users/' . (int)$u['id'] . '/toggle') ?>" id="formActive<?= (int)$u['id'] ?>">
                             <button type="submit" class="btn btn-sm <?= ((int)$u['is_active'] === 1 ? 'btn-outline-secondary' : 'btn-outline-success') ?>">
-                              <?= ((int)$u['is_active'] === 1 ? 'Deactivate' : 'Activate') ?>
+                              <?= ((int)$u['is_active'] === 1 ? esc(lang('App.pages.users.deactivate')) : esc(lang('App.pages.users.activate'))) ?>
                             </button>
                           </form>
                         </div>
