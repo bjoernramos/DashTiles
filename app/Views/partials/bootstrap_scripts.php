@@ -84,11 +84,58 @@
     });
   }
 
+  // Home: persist collapsed/expanded category state per user (localStorage)
+  function initHomeCategoryCollapse(){
+    try {
+      const body = document.body;
+      const uid = body && body.getAttribute('data-user-id');
+      if (!uid) return; // not logged in or not on home
+      const storageKey = 'tp_home_collapsed_' + uid;
+
+      function loadSet(){
+        try { const raw = localStorage.getItem(storageKey); return new Set(raw ? JSON.parse(raw) : []); }
+        catch(e){ return new Set(); }
+      }
+      function saveSet(set){
+        try { localStorage.setItem(storageKey, JSON.stringify(Array.from(set))); } catch(e){}
+      }
+
+      const collapsed = loadSet();
+      // Apply stored state before user interacts
+      document.querySelectorAll('[data-cat-id]').forEach(function(el){
+        const id = el.getAttribute('data-cat-id');
+        if (!id) return;
+        const isCollapsed = collapsed.has(id);
+        const isShown = el.classList.contains('show');
+        if (isCollapsed && isShown) {
+          // remove show class to start collapsed
+          el.classList.remove('show');
+          // Update aria-expanded on toggler, if present
+          const btn = document.querySelector('[data-bs-target="#' + CSS.escape(id) + '"]');
+          if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // Listen to collapse events to persist changes
+      document.querySelectorAll('[data-cat-id]').forEach(function(el){
+        const id = el.getAttribute('data-cat-id');
+        if (!id) return;
+        el.addEventListener('hidden.bs.collapse', function(){
+          collapsed.add(id); saveSet(collapsed);
+        });
+        el.addEventListener('shown.bs.collapse', function(){
+          collapsed.delete(id); saveSet(collapsed);
+        });
+      });
+    } catch(e) { /* no-op */ }
+  }
+
   function init(){
     runPing();
     // Repeat every 60 seconds
     setInterval(runPing, 60 * 1000);
     enableTileClicks();
+    initHomeCategoryCollapse();
   }
 
   if (document.readyState === 'loading') {

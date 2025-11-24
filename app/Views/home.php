@@ -7,7 +7,7 @@
   <?= view('partials/bootstrap_head') ?>
   <base href="<?= htmlspecialchars($basePath ?? '/toolpages', ENT_QUOTES) ?>/">
 </head>
-<body>
+<body <?= session()->get('user_id') ? ('data-user-id="'.(int)session()->get('user_id').'"') : '' ?> >
   <?= view('partials/nav') ?>
   <div class="container py-4">
     <div class="card shadow-sm mb-3">
@@ -36,9 +36,16 @@
       ?>
       <?php if (!empty($grouped) && is_array($grouped)): ?>
         <?php foreach ($grouped as $category => $list): ?>
-          <div class="card shadow-sm mb-3">
+          <?php $catId = 'cat_'.md5((string)$category); ?>
+          <div class="card shadow-sm mb-3" data-cat-wrapper="<?= esc($catId) ?>">
             <div class="card-body">
-              <h3 class="h5 mb-3"><?= esc($category) ?></h3>
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <h3 class="h5 m-0"><?= esc($category) ?></h3>
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#<?= esc($catId) ?>" aria-expanded="true" aria-controls="<?= esc($catId) ?>" title="Kategorie ein-/ausklappen">
+                  Ein-/Ausklappen
+                </button>
+              </div>
+              <div id="<?= esc($catId) ?>" class="collapse show" data-cat-id="<?= esc($catId) ?>">
               <div class="row g-3">
               <?php foreach ($list as $tile): ?>
                 <div class="col-12 col-md-<?= $colSize ?>">
@@ -85,6 +92,7 @@
                   </div>
                 </div>
               <?php endforeach; ?>
+              </div>
               </div>
             </div>
           </div>
