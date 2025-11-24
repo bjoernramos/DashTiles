@@ -49,8 +49,16 @@
                     } else {
                       $pingUrl = (string) ($tile['url'] ?? '');
                     }
+                    $tileHref = null;
+                    if ($tile['type'] === 'file') {
+                      $tileHref = site_url('file/' . (int)$tile['id']);
+                    } elseif ($tile['type'] === 'link') {
+                      $tileHref = (string) ($tile['url'] ?? '');
+                    } else {
+                      $tileHref = null; // avoid making iframe tiles clickable to not interfere with embedded content
+                    }
                   ?>
-                  <div class="border rounded p-3 h-100 tp-tile" data-ping-url="<?= esc($pingUrl) ?>">
+                  <div class="border rounded p-3 h-100 tp-tile" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?>>
                   <span class="tp-ping" aria-hidden="true"></span>
                   <h4 class="h6 d-flex align-items-center gap-2 mb-2">
                     <?php if (!empty($tile['icon'])): ?>
@@ -64,21 +72,15 @@
                     <?= esc($tile['title']) ?>
                   </h4>
                   <?php if ($tile['type'] === 'link'): ?>
-                    <p class="mb-0">
-                      <a class="btn btn-primary" href="<?= esc($tile['url']) ?>" target="_blank" rel="noopener">Öffnen</a>
-                      <?php if (!empty($tile['text'])): ?>
-                        <span class="text-muted ms-2"><?= esc($tile['text']) ?></span>
-                      <?php endif; ?>
-                    </p>
+                    <?php if (!empty($tile['text'])): ?>
+                      <p class="mb-0 text-muted small"><?= esc($tile['text']) ?></p>
+                    <?php endif; ?>
                   <?php elseif ($tile['type'] === 'iframe'): ?>
                     <iframe src="<?= esc($tile['url']) ?>" loading="lazy" style="width:100%;min-height:300px;border:0;border-radius:.5rem"></iframe>
                   <?php elseif ($tile['type'] === 'file'): ?>
-                    <p class="mb-0">
-                      <a class="btn btn-primary" href="<?= site_url('file/' . (int)$tile['id']) ?>" target="_blank" rel="noopener">Datei öffnen</a>
-                      <?php if (!empty($tile['text'])): ?>
-                        <span class="text-muted ms-2"><?= esc($tile['text']) ?></span>
-                      <?php endif; ?>
-                    </p>
+                    <?php if (!empty($tile['text'])): ?>
+                      <p class="mb-0 text-muted small"><?= esc($tile['text']) ?></p>
+                    <?php endif; ?>
                   <?php endif; ?>
                   </div>
                 </div>
