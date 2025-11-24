@@ -9,6 +9,8 @@ $routes->get('/', 'Home::index');
 $routes->get('health', 'Home::health');
 // Same-origin ping endpoint to check external URLs without CORS/CORP noise
 $routes->get('ping', 'Home::ping');
+// Locale switch
+$routes->get('lang/(:segment)', 'Locale::set/$1');
 
 // Auth
 $routes->get('login', 'AuthController::showLogin');

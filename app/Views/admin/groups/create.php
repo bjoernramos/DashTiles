@@ -1,18 +1,18 @@
 <!doctype html>
-<html lang="de">
+<html lang="<?= esc(service('request')->getLocale()) ?>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Neue Gruppe • Admin • toolpages</title>
+  <title><?= esc(lang('App.actions.new')) ?> <?= esc(lang('App.nav.groups')) ?> • <?= esc(lang('App.nav.admin')) ?> • <?= esc(lang('App.brand')) ?></title>
   <?= view('partials/bootstrap_head') ?>
 </head>
 <body>
   <?= view('partials/nav') ?>
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-      <h1 class="h3 m-0">Neue Gruppe</h1>
+      <h1 class="h3 m-0"><?= esc(lang('App.actions.new')) ?> <?= esc(lang('App.nav.groups')) ?></h1>
       <div>
-        <a class="btn btn-secondary" href="<?= site_url('admin/groups') ?>">Zurück</a>
+        <a class="btn btn-secondary" href="<?= site_url('admin/groups') ?>"><?= esc(lang('App.actions.back')) ?></a>
       </div>
     </div>
 
@@ -28,7 +28,7 @@
             <input id="name" name="name" class="form-control" required>
           </div>
           <div class="col-12">
-            <button class="btn btn-primary" type="submit">Anlegen</button>
+            <button class="btn btn-primary" type="submit"><?= esc(lang('App.actions.create')) ?></button>
           </div>
         </form>
       </div>

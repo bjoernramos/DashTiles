@@ -1,18 +1,18 @@
 <!doctype html>
-<html lang="de">
+<html lang="<?= esc(service('request')->getLocale()) ?>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gruppen • Admin • toolpages</title>
+  <title><?= esc(lang('App.nav.groups')) ?> • <?= esc(lang('App.nav.admin')) ?> • <?= esc(lang('App.brand')) ?></title>
   <?= view('partials/bootstrap_head') ?>
 </head>
 <body>
   <?= view('partials/nav') ?>
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-      <h1 class="h3 m-0">Gruppen</h1>
+      <h1 class="h3 m-0"><?= esc(lang('App.nav.groups')) ?></h1>
       <div>
-        <a class="btn btn-primary" href="<?= site_url('admin/groups/create') ?>">Neue Gruppe</a>
+        <a class="btn btn-primary" href="<?= site_url('admin/groups/create') ?>"><?= esc(lang('App.actions.new')) ?> <?= esc(lang('App.nav.groups')) ?></a>
       </div>
     </div>
 
@@ -32,7 +32,7 @@
                 <th style="width:60px">ID</th>
                 <th>Name</th>
                 <th>Mitglieder</th>
-                <th style="width:320px">Aktionen</th>
+                <th style="width:320px">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -55,7 +55,7 @@
                   <td>
                     <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editMembersModal<?= (int)$g['id'] ?>">Mitglieder</button>
                     <form method="post" action="<?= site_url('admin/groups/'.(int)$g['id'].'/delete') ?>" class="d-inline" onsubmit="return confirm('Gruppe wirklich löschen? Zugehörige Mitgliedschaften und Kachel-Zuordnungen werden entfernt.');">
-                      <button class="btn btn-sm btn-outline-danger" type="submit">Löschen</button>
+                      <button class="btn btn-sm btn-outline-danger" type="submit"><?= esc(lang('App.actions.delete')) ?></button>
                     </form>
                   </td>
                 </tr>
@@ -81,8 +81,8 @@
                         </form>
                       </div>
                       <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
-                        <button type="submit" class="btn btn-primary" form="membersForm<?= (int)$g['id'] ?>">Speichern</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= esc(lang('App.actions.close')) ?></button>
+                        <button type="submit" class="btn btn-primary" form="membersForm<?= (int)$g['id'] ?>"><?= esc(lang('App.actions.save')) ?></button>
                       </div>
                     </div>
                   </div>

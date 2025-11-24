@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="en">
+<html lang="<?= esc(service('request')->getLocale()) ?>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Create User • Admin</title>
+  <title><?= esc(lang('App.actions.new')) ?> <?= esc(lang('App.nav.users')) ?> • <?= esc(lang('App.nav.admin')) ?></title>
   <?= view('partials/bootstrap_head') ?>
 </head>
 <body>
 <?= view('partials/nav') ?>
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h1 class="h3 m-0">Create Local User</h1>
-      <a class="btn btn-secondary" href="<?= site_url('admin/users') ?>">Back</a>
+      <h1 class="h3 m-0"><?= esc(lang('App.actions.new')) ?> Local User</h1>
+      <a class="btn btn-secondary" href="<?= site_url('admin/users') ?>"><?= esc(lang('App.actions.back')) ?></a>
     </div>
     <div class="card shadow-sm">
       <div class="card-body">
@@ -57,7 +57,7 @@
           </div>
 
           <div class="mt-3">
-            <button class="btn btn-primary" type="submit">Create</button>
+            <button class="btn btn-primary" type="submit"><?= esc(lang('App.actions.create')) ?></button>
           </div>
         </form>
       </div>

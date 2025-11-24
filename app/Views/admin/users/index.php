@@ -1,19 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="<?= esc(service('request')->getLocale()) ?>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Users • Admin</title>
+  <title><?= esc(lang('App.nav.users')) ?> • <?= esc(lang('App.nav.admin')) ?></title>
   <?= view('partials/bootstrap_head') ?>
 </head>
 <body>
 <?= view('partials/nav') ?>
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h1 class="h3 m-0">Admin • Users</h1>
+      <h1 class="h3 m-0"><?= esc(lang('App.nav.admin')) ?> • <?= esc(lang('App.nav.users')) ?></h1>
       <div class="d-flex gap-2">
-        <a class="btn btn-primary" href="<?= site_url('admin/users/create') ?>">Add Local User</a>
-        <a class="btn btn-secondary" href="<?= site_url('/') ?>">Back</a>
+        <a class="btn btn-primary" href="<?= site_url('admin/users/create') ?>"><?= esc(lang('App.actions.new')) ?> <?= esc(lang('App.nav.users')) ?></a>
+        <a class="btn btn-secondary" href="<?= site_url('/') ?>"><?= esc(lang('App.actions.back')) ?></a>
       </div>
     </div>
     <?php if (session()->getFlashdata('error')): ?>
@@ -61,9 +61,9 @@
                   </span>
                 </td>
                 <td>
-                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editUserModal<?= (int)$u['id'] ?>">Edit</button>
+                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editUserModal<?= (int)$u['id'] ?>"><?= esc(lang('App.actions.edit')) ?></button>
                   <form method="post" action="<?= site_url('admin/users/' . (int) $u['id'] . '/delete') ?>" class="d-inline" onsubmit="return confirm('Diesen Benutzer inklusive persönlicher Kacheln löschen?');">
-                    <button class="btn btn-sm btn-outline-danger" type="submit" <?= ((int)$u['id'] === $currentId ? 'disabled' : '') ?>>Delete</button>
+                    <button class="btn btn-sm btn-outline-danger" type="submit" <?= ((int)$u['id'] === $currentId ? 'disabled' : '') ?>><?= esc(lang('App.actions.delete')) ?></button>
                   </form>
                 </td>
               </tr>
@@ -72,7 +72,7 @@
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header">
-                      <h5 class="modal-title">Edit User • <?= esc($u['username']) ?></h5>
+                      <h5 class="modal-title"><?= esc(lang('App.actions.edit')) ?> User • <?= esc($u['username']) ?></h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -97,8 +97,8 @@
                       </div>
                     </div>
                     <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                      <button type="submit" class="btn btn-primary" form="formRole<?= (int)$u['id'] ?>">Save</button>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= esc(lang('App.actions.close')) ?></button>
+                      <button type="submit" class="btn btn-primary" form="formRole<?= (int)$u['id'] ?>"><?= esc(lang('App.actions.save')) ?></button>
                     </div>
                   </div>
                 </div>

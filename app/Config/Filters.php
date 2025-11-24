@@ -37,6 +37,7 @@ class Filters extends BaseFilters
         // App filters
         'auth'          => \App\Filters\AuthFilter::class,
         'admin'         => \App\Filters\AdminFilter::class,
+        'locale'        => \App\Filters\LocaleFilter::class,
     ];
 
     /**
@@ -75,6 +76,7 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
+            'locale',
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
@@ -84,6 +86,8 @@ class Filters extends BaseFilters
                     'login/*',
                     'logout',
                     'health',
+                    'lang',
+                    'lang/*',
                     '/',
                 ],
             ],
