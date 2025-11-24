@@ -61,14 +61,48 @@
                   </span>
                 </td>
                 <td>
-                  <form method="post" action="<?= site_url('admin/users/' . (int) $u['id'] . '/toggle') ?>" class="d-inline">
-                    <button class="btn btn-sm btn-outline-secondary" type="submit">Toggle</button>
-                  </form>
+                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editUserModal<?= (int)$u['id'] ?>">Edit</button>
                   <form method="post" action="<?= site_url('admin/users/' . (int) $u['id'] . '/delete') ?>" class="d-inline" onsubmit="return confirm('Diesen Benutzer inklusive persönlicher Kacheln löschen?');">
                     <button class="btn btn-sm btn-outline-danger" type="submit" <?= ((int)$u['id'] === $currentId ? 'disabled' : '') ?>>Delete</button>
                   </form>
                 </td>
               </tr>
+              <!-- Edit User Modal -->
+              <div class="modal fade" id="editUserModal<?= (int)$u['id'] ?>" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Edit User • <?= esc($u['username']) ?></h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <form method="post" action="<?= site_url('admin/users/' . (int)$u['id'] . '/role') ?>" id="formRole<?= (int)$u['id'] ?>">
+                          <select name="role" class="form-select">
+                            <option value="user" <?= ($u['role'] === 'user' ? 'selected' : '') ?>>user</option>
+                            <option value="admin" <?= ($u['role'] === 'admin' ? 'selected' : '') ?>>admin</option>
+                          </select>
+                        </form>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Active</label>
+                        <div>
+                          <form method="post" action="<?= site_url('admin/users/' . (int)$u['id'] . '/toggle') ?>" id="formActive<?= (int)$u['id'] ?>">
+                            <button type="submit" class="btn btn-sm <?= ((int)$u['is_active'] === 1 ? 'btn-outline-secondary' : 'btn-outline-success') ?>">
+                              <?= ((int)$u['is_active'] === 1 ? 'Deactivate' : 'Activate') ?>
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                      <button type="submit" class="btn btn-primary" form="formRole<?= (int)$u['id'] ?>">Save</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             <?php endforeach; ?>
             </tbody>
           </table>

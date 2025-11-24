@@ -42,7 +42,16 @@
               <div class="row g-3">
               <?php foreach ($list as $tile): ?>
                 <div class="col-12 col-md-<?= $colSize ?>">
-                  <div class="border rounded p-3 h-100">
+                  <?php 
+                    $pingUrl = null;
+                    if ($tile['type'] === 'file') {
+                      $pingUrl = site_url('file/' . (int)$tile['id']);
+                    } else {
+                      $pingUrl = (string) ($tile['url'] ?? '');
+                    }
+                  ?>
+                  <div class="border rounded p-3 h-100 tp-tile" data-ping-url="<?= esc($pingUrl) ?>">
+                  <span class="tp-ping" aria-hidden="true"></span>
                   <h4 class="h6 d-flex align-items-center gap-2 mb-2">
                     <?php if (!empty($tile['icon'])): ?>
                       <?php $icon = (string) $tile['icon']; $isImg = str_starts_with($icon, 'http://') || str_starts_with($icon, 'https://') || str_starts_with($icon, '/'); ?>

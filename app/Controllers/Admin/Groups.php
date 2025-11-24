@@ -13,7 +13,25 @@ class Groups extends BaseController
     public function index()
     {
         $groups = (new GroupModel())->orderBy('name','asc')->findAll();
-        return view('admin/groups/index', ['groups' => $groups]);
+
+        // Build members list per group for display and modal defaults
+        $ug = new UserGroupModel();
+        $userModel = new UserModel();
+        $memberships = $ug->findAll();
+        $groupUserIds = [];
+        foreach ($memberships as $m) {
+            $gid = (int)$m['group_id'];
+            $uid = (int)$m['user_id'];
+            $groupUserIds[$gid] = $groupUserIds[$gid] ?? [];
+            $groupUserIds[$gid][] = $uid;
+        }
+        $allUsers = $userModel->select('id, display_name, username')->where('is_active', 1)->orderBy('display_name','asc')->findAll();
+
+        return view('admin/groups/index', [
+            'groups' => $groups,
+            'groupUserIds' => $groupUserIds,
+            'users' => $allUsers,
+        ]);
     }
 
     public function create()
