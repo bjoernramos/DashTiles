@@ -27,6 +27,8 @@ return [
         'update'  => 'Aktualisieren',
         'open'    => 'Öffnen',
         'members' => 'Mitglieder',
+        'hide'    => 'Ausblenden',
+        'unhide'  => 'Einblenden',
       ],
 
     // Greetings
@@ -71,6 +73,9 @@ return [
             'updated' => 'Kachel aktualisiert',
             'created' => 'Kachel angelegt',
             'global_badge' => 'Global',
+            'hidden_title' => 'Für dich ausgeblendete globale Kacheln',
+            'hidden_none'  => 'Keine Kacheln ausgeblendet.',
+            'drag_hint'    => 'Tipp: Kacheln per Drag & Drop innerhalb einer Kategorie neu anordnen.',
         ],
         'groups' => [
             'index_title' => 'Gruppen',

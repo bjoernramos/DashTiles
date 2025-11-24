@@ -42,5 +42,9 @@ $routes->post('dashboard/settings', 'Dashboard::saveSettings');
 $routes->post('dashboard/tile', 'Dashboard::store');
 $routes->post('dashboard/tile/(\d+)', 'Dashboard::update/$1');
 $routes->post('dashboard/tile/(\d+)/delete', 'Dashboard::delete/$1');
+// Personalize tiles: reorder and hide/unhide
+$routes->post('dashboard/reorder', 'Dashboard::reorder');
+$routes->post('dashboard/tile/(\d+)/hide', 'Dashboard::hide/$1');
+$routes->post('dashboard/tile/(\d+)/unhide', 'Dashboard::unhide/$1');
 // Serve user file tiles securely
 $routes->get('file/(\d+)', 'Dashboard::file/$1');

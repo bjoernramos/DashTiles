@@ -44,6 +44,14 @@ class TileModel extends Model
 
         $builder = $this->select('tiles.*')->distinct();
 
+        // User-spezifische Präferenzen (verstecken/Reihenfolge)
+        $db = \Config\Database::connect();
+        $hasPrefs = $db->tableExists('user_tile_prefs');
+        if ($hasPrefs) {
+            $utp = $db->protectIdentifiers('user_tile_prefs');
+            $builder->join("{$utp} utp", 'utp.tile_id = tiles.id AND utp.user_id = ' . (int)$userId, 'left');
+        }
+
         if ($hasTU) {
             $tuTable = $db->protectIdentifiers('tile_users');
             $builder->join("{$tuTable} tu", 'tu.tile_id = tiles.id AND tu.user_id = ' . (int)$userId, 'left');
@@ -64,10 +72,26 @@ class TileModel extends Model
         if ($hasUG && $hasTG) {
             $builder->orWhere('tg.group_id IS NOT NULL', null, false);
         }
-        $builder->groupEnd()
-            ->orderBy('tiles.category', 'ASC')
-            ->orderBy('tiles.position', 'ASC')
-            ->orderBy('tiles.id', 'ASC');
+        $builder->groupEnd();
+
+        // Versteckte Kacheln des Nutzers ausblenden
+        if ($hasPrefs) {
+            $builder->groupStart()
+                ->where('utp.hidden', 0)
+                ->orWhere('utp.hidden IS NULL', null, false)
+            ->groupEnd();
+        }
+
+        // Sortierung: nach Kategorie, dann per Nutzer-Position (falls vorhanden), sonst tiles.position
+        if ($hasPrefs) {
+            $builder->orderBy('tiles.category', 'ASC')
+                    ->orderBy('COALESCE(utp.position, tiles.position)', 'ASC', false)
+                    ->orderBy('tiles.id', 'ASC');
+        } else {
+            $builder->orderBy('tiles.category', 'ASC')
+                    ->orderBy('tiles.position', 'ASC')
+                    ->orderBy('tiles.id', 'ASC');
+        }
 
         return $builder;
     }

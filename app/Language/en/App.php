@@ -27,6 +27,8 @@ return [
         'update'  => 'Update',
         'open'    => 'Open',
         'members' => 'Members',
+        'hide'    => 'Hide',
+        'unhide'  => 'Unhide',
       ],
 
     // Greetings
@@ -71,6 +73,9 @@ return [
             'updated' => 'Tile updated',
             'created' => 'Tile created',
             'global_badge' => 'Global',
+            'hidden_title' => 'Global tiles hidden for you',
+            'hidden_none'  => 'No tiles hidden.',
+            'drag_hint'    => 'Tip: Drag & drop tiles within a category to reorder them.',
         ],
         'groups' => [
             'index_title' => 'Groups',

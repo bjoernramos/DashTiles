@@ -37,7 +37,7 @@
       <?php if (!empty($grouped) && is_array($grouped)): ?>
         <?php foreach ($grouped as $category => $list): ?>
           <?php $catId = 'cat_'.md5((string)$category); ?>
-          <div class="card shadow-sm mb-3" data-cat-wrapper="<?= esc($catId) ?>">
+          <div class="card mb-3 category" data-cat-wrapper="<?= esc($catId) ?>">
             <div class="card-body">
               <div class="d-flex align-items-center justify-content-between mb-2">
                 <h3 class="h5 m-0"><?= esc($category) ?></h3>

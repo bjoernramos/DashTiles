@@ -8,6 +8,7 @@ use App\Models\UserModel;
 use App\Models\GroupModel;
 use App\Models\TileUserModel;
 use App\Models\TileGroupModel;
+use App\Models\UserTilePrefModel;
 
 class Dashboard extends BaseController
 {
@@ -67,6 +68,26 @@ class Dashboard extends BaseController
             ->orderBy('name', 'ASC')
             ->findAll();
 
+        // Versteckte globale Kacheln des Nutzers für Einstellungsbereich ermitteln
+        $hiddenTiles = [];
+        try {
+            $db = \Config\Database::connect();
+            if ($db->tableExists('user_tile_prefs')) {
+                $hiddenTiles = $db->table('tiles')
+                    ->select('tiles.id, tiles.title, tiles.category')
+                    ->join('user_tile_prefs utp', 'utp.tile_id = tiles.id', 'inner')
+                    ->where('utp.user_id', $userId)
+                    ->where('utp.hidden', 1)
+                    ->where('tiles.is_global', 1)
+                    ->where('tiles.deleted_at', null)
+                    ->orderBy('tiles.category', 'ASC')
+                    ->orderBy('tiles.title', 'ASC')
+                    ->get()->getResultArray();
+            }
+        } catch (\Throwable $e) {
+            $hiddenTiles = [];
+        }
+
         // Group tiles by category
         $grouped = [];
         foreach ($tiles as $t) {
@@ -87,6 +108,7 @@ class Dashboard extends BaseController
             'groupsList'=> $groups,
             'tileUserMap' => $tileUserMap,
             'tileGroupMap' => $tileGroupMap,
+            'hiddenTiles' => $hiddenTiles,
         ]);
     }
 
@@ -237,6 +259,94 @@ class Dashboard extends BaseController
         (new TileGroupModel())->where('tile_id', $id)->delete();
         $model->delete($id);
         return redirect()->to('/dashboard')->with('success', 'Kachel gelöscht');
+    }
+
+    /**
+     * Speichert neue Reihenfolge der Kacheln innerhalb einer Kategorie pro Nutzer
+     * Erwartet POST: category (string), ids[] (tile ids in neuer Reihenfolge)
+     */
+    public function reorder()
+    {
+        $userId = (int) session()->get('user_id');
+        if ($userId <= 0) {
+            return $this->response->setStatusCode(401)->setJSON(['ok' => false]);
+        }
+        $category = (string) ($this->request->getPost('category') ?? '');
+        $ids = $this->request->getPost('ids');
+        if (!is_array($ids)) {
+            return $this->response->setStatusCode(400)->setJSON(['ok' => false]);
+        }
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+
+        // Optional: Nur Kacheln berücksichtigen, die der Nutzer sehen darf
+        $visibleIds = array_map(static fn($r) => (int)$r['id'], (new TileModel())->forUser($userId)->findAll());
+        $visibleSet = array_flip($visibleIds);
+
+        $model = new UserTilePrefModel();
+        $now = date('Y-m-d H:i:s');
+        $pos = 0;
+        foreach ($ids as $tid) {
+            if ($tid <= 0) continue;
+            if (!isset($visibleSet[$tid])) continue;
+            // Upsert: vorhandenen Datensatz aktualisieren, sonst neu anlegen
+            $existing = $model->where('user_id', $userId)->where('tile_id', $tid)->first();
+            $row = [
+                'user_id' => $userId,
+                'tile_id' => $tid,
+                'position' => $pos,
+                'updated_at' => $now,
+            ];
+            if ($existing) {
+                $model->where('user_id', $userId)->where('tile_id', $tid)->set($row)->update();
+            } else {
+                $row['hidden'] = 0;
+                $model->insert($row);
+            }
+            $pos++;
+        }
+
+        return $this->response->setJSON(['ok' => true]);
+    }
+
+    /** Markiert eine globale Kachel für den aktuellen Nutzer als versteckt */
+    public function hide(int $id)
+    {
+        $userId = (int) session()->get('user_id');
+        if ($userId <= 0) {
+            return redirect()->to('/login');
+        }
+        $tile = (new TileModel())->find($id);
+        if (! $tile || (int)($tile['is_global'] ?? 0) !== 1) {
+            return redirect()->to('/dashboard')->with('error', 'Kachel nicht gefunden');
+        }
+        $model = new UserTilePrefModel();
+        $existing = $model->where('user_id', $userId)->where('tile_id', $id)->first();
+        $row = [ 'user_id' => $userId, 'tile_id' => $id, 'hidden' => 1, 'updated_at' => date('Y-m-d H:i:s') ];
+        if ($existing) {
+            $model->where('user_id', $userId)->where('tile_id', $id)->set($row)->update();
+        } else {
+            $model->insert($row);
+        }
+        return redirect()->to('/dashboard')->with('success', 'Kachel für dich ausgeblendet');
+    }
+
+    /** Hebt das Verstecken einer globalen Kachel für den aktuellen Nutzer auf */
+    public function unhide(int $id)
+    {
+        $userId = (int) session()->get('user_id');
+        if ($userId <= 0) {
+            return redirect()->to('/login');
+        }
+        $tile = (new TileModel())->find($id);
+        if (! $tile || (int)($tile['is_global'] ?? 0) !== 1) {
+            return redirect()->to('/dashboard')->with('error', 'Kachel nicht gefunden');
+        }
+        $model = new UserTilePrefModel();
+        $existing = $model->where('user_id', $userId)->where('tile_id', $id)->first();
+        if ($existing) {
+            $model->where('user_id', $userId)->where('tile_id', $id)->set(['hidden' => 0, 'updated_at' => date('Y-m-d H:i:s')])->update();
+        }
+        return redirect()->to('/dashboard')->with('success', 'Kachel wieder eingeblendet');
     }
 
     public function file(int $id)

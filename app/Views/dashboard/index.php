@@ -60,6 +60,33 @@
       </div>
     </div>
 
+    <?php if (!empty($hiddenTiles)): ?>
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h2 class="h5 m-0"><?= esc(lang('App.pages.dashboard.hidden_title')) ?></h2>
+        </div>
+        <div class="row g-2">
+          <?php foreach ($hiddenTiles as $ht): ?>
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="border rounded p-2 d-flex justify-content-between align-items-center">
+                <div>
+                  <strong><?= esc($ht['title']) ?></strong>
+                  <span class="text-muted small ms-2"><?= esc($ht['category'] ?? '') ?></span>
+                </div>
+                <form method="post" action="/dashboard/tile/<?= (int)$ht['id'] ?>/unhide" class="m-0">
+                  <button class="btn btn-sm btn-outline-success" type="submit"><?= esc(lang('App.actions.unhide')) ?></button>
+                </form>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </div>
+    <?php else: ?>
+    <div class="text-muted small mb-3"><?= esc(lang('App.pages.dashboard.drag_hint')) ?></div>
+    <?php endif; ?>
+
     <!-- Add Tile Modal with Tabs -->
     <div class="modal fade" id="addTileModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -273,7 +300,7 @@
       <div class="card shadow-sm mb-3">
         <div class="card-body">
           <h3 class="h5 mb-3"><?= esc($category) ?></h3>
-          <div class="row g-3">
+          <div class="row g-3" data-sortable="1" data-category="<?= esc($category) ?>">
           <?php foreach ($list as $tile): ?>
             <div class="col-12  col-md-<?= $colSize ?>">
               <?php 
@@ -287,7 +314,7 @@
                   $tileHref = null; // iFrame bleibt eingebettet, keine gesamte Kachel-Klickaktion
                 }
               ?>
-              <div class="border rounded p-3 h-100 tp-tile" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?>>
+              <div class="border rounded p-3 h-100 tp-tile" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?> data-tile-id="<?= (int)$tile['id'] ?>" draggable="true">
                 <span class="tp-ping" aria-hidden="true"></span>
                 <div class="d-flex justify-content-between align-items-center mb-2">
                   <h4 class="h6 d-flex align-items-center gap-2 m-0">
@@ -313,14 +340,21 @@
                       $canManage = $isOwner || ($isAdmin && $isGlobal);
                     }
                   ?>
-                  <?php if ($canManage): ?>
-                    <div class="btn-group">
+                  <div class="btn-group">
+                    <!-- Drag handle visual indicator -->
+                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Drag" data-drag-handle="1"><span class="material-symbols-outlined" aria-hidden="true">drag_indicator</span></button>
+                    <?php if ($canManage): ?>
                       <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>"><?= esc(lang('App.actions.edit')) ?></button>
                       <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/delete" onsubmit="return confirm('<?= esc(lang('App.pages.dashboard.delete_tile_confirm')) ?>')" class="m-0 d-inline">
                         <button class="btn btn-sm btn-outline-danger" type="submit"><?= esc(lang('App.actions.delete')) ?></button>
                       </form>
-                    </div>
-                  <?php endif; ?>
+                    <?php endif; ?>
+                    <?php if (!empty($tile['is_global']) && (int)$tile['is_global'] === 1): ?>
+                      <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/hide" class="m-0 d-inline">
+                        <button class="btn btn-sm btn-outline-warning" type="submit"><?= esc(lang('App.actions.hide')) ?></button>
+                      </form>
+                    <?php endif; ?>
+                  </div>
                 </div>
                 <?php if ($tile['type'] === 'link'): ?>
                   <?php if (!empty($tile['text'])): ?>

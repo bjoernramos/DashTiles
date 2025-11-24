@@ -9,6 +9,7 @@
 (function(){
   const DOT_OK = 'ok', DOT_ERR = 'err';
   const PING_ENDPOINT = '<?= site_url('ping') ?>';
+  const REORDER_ENDPOINT = '<?= site_url('dashboard/reorder') ?>';
 
   function doPing(url, timeoutMs){
     return new Promise((resolve, reject) => {
@@ -84,6 +85,78 @@
     });
   }
 
+  // Drag & Drop Sortierung innerhalb einer Kategorie im Dashboard
+  function initSortableTiles(){
+    try {
+      const containers = document.querySelectorAll('[data-sortable="1"][data-category]');
+      if (!containers.length) return;
+
+      let draggingTile = null;
+      let draggingCol = null;
+
+      function getCol(el){
+        if (!el) return null;
+        // die umschließende Grid-Spalte verschieben
+        return el.closest('[class*="col-"]');
+      }
+
+      function onDragStart(e){
+        const tile = e.currentTarget;
+        draggingTile = tile;
+        draggingCol = getCol(tile);
+        try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', tile.getAttribute('data-tile-id')||''); } catch(_){}
+        tile.classList.add('opacity-50');
+      }
+      function onDragEnd(e){
+        const tile = e.currentTarget;
+        tile.classList.remove('opacity-50');
+        draggingTile = null;
+        draggingCol = null;
+      }
+      function onDragOver(e){
+        e.preventDefault(); // erlaub Drop
+        const overTile = e.target.closest('.tp-tile');
+        if (!overTile || !draggingCol) return;
+        const overCol = getCol(overTile);
+        if (!overCol || overCol === draggingCol) return;
+        const row = overCol.parentElement; // .row g-3
+        // Einfügeposition bestimmen: vor oder nach overCol basierend auf Cursor
+        const overRect = overCol.getBoundingClientRect();
+        const before = (e.clientY - overRect.top) < (overRect.height / 2);
+        if (before) {
+          row.insertBefore(draggingCol, overCol);
+        } else {
+          row.insertBefore(draggingCol, overCol.nextSibling);
+        }
+      }
+      function serializeAndSend(row){
+        const category = row.getAttribute('data-category') || '';
+        const ids = [];
+        row.querySelectorAll('.tp-tile[data-tile-id]').forEach(function(tile){
+          const id = parseInt(tile.getAttribute('data-tile-id')||'0', 10);
+          if (id > 0) ids.push(id);
+        });
+        if (!ids.length) return;
+        const body = new URLSearchParams();
+        body.set('category', category);
+        ids.forEach(id => body.append('ids[]', String(id)));
+        fetch(REORDER_ENDPOINT, { method: 'POST', credentials: 'same-origin', body })
+          .then(() => { /* ok */ })
+          .catch(() => { /* ignore */ });
+      }
+
+      containers.forEach(function(row){
+        row.addEventListener('dragover', onDragOver);
+        // Drop am Container triggert Speichern
+        row.addEventListener('drop', function(e){ e.preventDefault(); serializeAndSend(row); });
+        row.querySelectorAll('.tp-tile[draggable="true"]').forEach(function(tile){
+          tile.addEventListener('dragstart', onDragStart);
+          tile.addEventListener('dragend', onDragEnd);
+        });
+      });
+    } catch(e) { /* noop */ }
+  }
+
   // Home: persist collapsed/expanded category state per user (localStorage)
   function initHomeCategoryCollapse(){
     try {
@@ -149,6 +222,7 @@
     setInterval(runPing, 60 * 1000);
     enableTileClicks();
     initHomeCategoryCollapse();
+    initSortableTiles();
   }
 
   if (document.readyState === 'loading') {
