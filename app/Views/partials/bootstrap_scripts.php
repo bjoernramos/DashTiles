@@ -100,6 +100,15 @@
         try { localStorage.setItem(storageKey, JSON.stringify(Array.from(set))); } catch(e){}
       }
 
+      function setIcon(catId, expanded){
+        try {
+          const icon = document.querySelector('[data-cat-icon="' + CSS.escape(catId) + '"]');
+          if (icon) {
+            icon.textContent = expanded ? 'expand_less' : 'expand_more';
+          }
+        } catch(e) { /* noop */ }
+      }
+
       const collapsed = loadSet();
       // Apply stored state before user interacts
       document.querySelectorAll('[data-cat-id]').forEach(function(el){
@@ -114,6 +123,8 @@
           const btn = document.querySelector('[data-bs-target="#' + CSS.escape(id) + '"]');
           if (btn) btn.setAttribute('aria-expanded', 'false');
         }
+        // Update icon on load
+        setIcon(id, !isCollapsed);
       });
 
       // Listen to collapse events to persist changes
@@ -122,9 +133,11 @@
         if (!id) return;
         el.addEventListener('hidden.bs.collapse', function(){
           collapsed.add(id); saveSet(collapsed);
+          setIcon(id, false);
         });
         el.addEventListener('shown.bs.collapse', function(){
           collapsed.delete(id); saveSet(collapsed);
+          setIcon(id, true);
         });
       });
     } catch(e) { /* no-op */ }

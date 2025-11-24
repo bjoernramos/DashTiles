@@ -41,8 +41,9 @@
             <div class="card-body">
               <div class="d-flex align-items-center justify-content-between mb-2">
                 <h3 class="h5 m-0"><?= esc($category) ?></h3>
-                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#<?= esc($catId) ?>" aria-expanded="true" aria-controls="<?= esc($catId) ?>" title="Kategorie ein-/ausklappen">
-                  Ein-/Ausklappen
+                <button class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" type="button" data-bs-toggle="collapse" data-bs-target="#<?= esc($catId) ?>" aria-expanded="true" aria-controls="<?= esc($catId) ?>" title="Kategorie ein-/ausklappen">
+                  <span class="material-symbols-outlined" aria-hidden="true" data-cat-icon="<?= esc($catId) ?>">expand_less</span>
+                  <span class="visually-hidden">Ein-/Ausklappen</span>
                 </button>
               </div>
               <div id="<?= esc($catId) ?>" class="collapse show" data-cat-id="<?= esc($catId) ?>">
