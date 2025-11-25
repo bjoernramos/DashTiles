@@ -51,9 +51,11 @@
 
 
                   <div class="col-auto">
-                      <button class="btn btn-link p-0 m-0" type="button"
+                      <button class="btn btn-link p-0 m-0 text-decoration-none text-secondary" type="button"
                               data-bs-toggle="modal" data-bs-target="#addTileModal">
-                          <span class="material-icons">add</span>
+                          <span class="material-symbols-outlined">
+                            dashboard_customize
+                    </span>
                       </button>
                   </div>
 
@@ -149,6 +151,18 @@
                       <input type="file" name="bg_file" class="form-control" accept="image/*">
                     </div>
                   </div>
+                  <div class="row g-2 mt-1">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Hintergrundfarbe (optional)</label>
+                      <input type="hidden" name="bg_color_picker_used" value="0">
+                      <input type="color" name="bg_color_picker" class="form-control form-control-color" value="#ffffff" oninput="this.form.elements['bg_color_picker_used'].value='1'">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Farbverlauf/Manuell (CSS)</label>
+                      <input type="text" name="bg_color" class="form-control" placeholder="#112233 oder linear-gradient(45deg, #123, #456)" oninput="this.form.elements['bg_color_picker_used'].value=this.value?'0':this.form.elements['bg_color_picker_used'].value">
+                      <div class="form-text">Wenn beide gesetzt sind, wird der manuelle Wert verwendet.</div>
+                    </div>
+                  </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" name="is_global" value="1" id="lg1">
@@ -204,6 +218,18 @@
                       <input type="file" name="bg_file" class="form-control" accept="image/*">
                     </div>
                   </div>
+                  <div class="row g-2 mt-1">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Hintergrundfarbe (optional)</label>
+                      <input type="hidden" name="bg_color_picker_used" value="0">
+                      <input type="color" name="bg_color_picker" class="form-control form-control-color" value="#ffffff" oninput="this.form.elements['bg_color_picker_used'].value='1'">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Farbverlauf/Manuell (CSS)</label>
+                      <input type="text" name="bg_color" class="form-control" placeholder="#112233 oder linear-gradient(45deg, #123, #456)" oninput="this.form.elements['bg_color_picker_used'].value=this.value?'0':this.form.elements['bg_color_picker_used'].value">
+                      <div class="form-text">Wenn beide gesetzt sind, wird der manuelle Wert verwendet.</div>
+                    </div>
+                  </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" name="is_global" value="1" id="fg1">
@@ -257,6 +283,18 @@
                     <div class="col-12 col-md-6">
                       <label class="form-label">Hintergrundbild (optional)</label>
                       <input type="file" name="bg_file" class="form-control" accept="image/*">
+                    </div>
+                  </div>
+                  <div class="row g-2 mt-1">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Hintergrundfarbe (optional)</label>
+                      <input type="hidden" name="bg_color_picker_used" value="0">
+                      <input type="color" name="bg_color_picker" class="form-control form-control-color" value="#ffffff" oninput="this.form.elements['bg_color_picker_used'].value='1'">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Farbverlauf/Manuell (CSS)</label>
+                      <input type="text" name="bg_color" class="form-control" placeholder="#112233 oder linear-gradient(45deg, #123, #456)" oninput="this.form.elements['bg_color_picker_used'].value=this.value?'0':this.form.elements['bg_color_picker_used'].value">
+                      <div class="form-text">Wenn beide gesetzt sind, wird der manuelle Wert verwendet.</div>
                     </div>
                   </div>
                   <?php if (($role) === 'admin'): ?>
@@ -319,7 +357,15 @@
                   $tileHref = null; // iFrame bleibt eingebettet, keine gesamte Kachel-Klickaktion
                 }
               ?>
-              <?php $bgStyle = !empty($tile['bg_path']) ? ('background-image:url(' . esc(base_url($tile['bg_path'])) . ');') : ''; ?>
+              <?php 
+                $bgStyle = '';
+                if (!empty($tile['bg_path'])) {
+                  $bgStyle = 'background-image:url(' . esc(base_url($tile['bg_path'])) . ');';
+                } elseif (!empty($tile['bg_color'])) {
+                  // Use generic background so gradients or solid colors work
+                  $bgStyle = 'background:' . esc($tile['bg_color']) . ';';
+                }
+              ?>
               <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?> data-tile-id="<?= (int)$tile['id'] ?>" draggable="true">
                 <span class="tp-ping" aria-hidden="true"></span>
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -363,14 +409,17 @@
                     <!-- Drag handle visual indicator -->
 
                     <?php if ($canManage): ?>
-                      <button type="button" class="btn btn-sm text-secondary text-decoration-none border-0 bg-transparent p-1" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>"><?= esc(lang('App.actions.edit')) ?></button>
+                      <button type="button" class="btn btn-sm text-secondary text-decoration-none border-0 bg-transparent p-1" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>">
+                          <span class="material-symbols-outlined">edit</span>
+                      </button>
                       <button type="button"
                               class="btn btn-sm text-danger text-decoration-none border-0 bg-transparent p-1"
                               data-action="delete-tile"
                               data-tile-id="<?= (int)$tile['id'] ?>"
                               data-delete-url="<?= esc(site_url('dashboard/tile/' . (int)$tile['id'] . '/delete')) ?>"
                               data-confirm-text="<?= esc(lang('App.pages.dashboard.delete_tile_confirm')) ?>">
-                          <span class="material-symbols-rounded">delete</span>
+                          <span class="material-symbols-outlined">delete</span>
+
                       </button>
                     <?php endif; ?>
                     <?php if (!empty($tile['is_global']) && (int)$tile['is_global'] === 1): ?>
@@ -459,6 +508,22 @@
                     <?php endif; ?>
                     <input type="file" name="bg_file" class="form-control" accept="image/*">
                   </div>
+                </div>
+                <div class="mt-2">
+                  <label class="form-label">Hintergrundfarbe</label>
+                  <div class="row g-2 align-items-center">
+                    <div class="col-12 col-md-4">
+                      <input type="hidden" name="bg_color_picker_used" value="0">
+                      <input type="hidden" name="bg_color_touch" value="0">
+                      <input type="color" name="bg_color_picker" class="form-control form-control-color" value="<?= esc(preg_match('/^#|rgb|hsl|var\(/i', (string)($tile['bg_color'] ?? '')) ? ($tile['bg_color'] ?? '#ffffff') : '#ffffff') ?>" oninput="this.form.elements['bg_color_picker_used'].value='1'; this.form.elements['bg_color_touch'].value='1'">
+                    </div>
+                    <div class="col-12 col-md-8">
+                      <input type="text" name="bg_color" class="form-control" value="<?= esc($tile['bg_color'] ?? '') ?>" placeholder="#112233 oder linear-gradient(45deg, #123, #456)" oninput="this.form.elements['bg_color_touch'].value='1'">
+                    </div>
+                  </div>
+                  <?php if (!empty($tile['bg_color'])): ?>
+                    <button type="submit" name="delete_bg_color" value="1" class="btn btn-sm btn-outline-danger mt-2">Farbe/Gradient löschen</button>
+                  <?php endif; ?>
                 </div>
                 <!-- position removed: assignment handled by backend and reorder endpoint -->
                 <?php if (($role ?? 'user') === 'admin'): ?>

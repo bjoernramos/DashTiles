@@ -1,0 +1,18 @@
+{
+  "name": "toolpages",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Self-hosted dashboard for internal tool shortcuts",
+  "type": "module",
+  "scripts": {
+    "icons:sync": "node scripts/sync-icons.mjs",
+    "postinstall": "node scripts/sync-icons.mjs || echo 'icons sync skipped'"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "@iconify/iconify": "^3.1.1",
+    "@iconify-json/line-md": "^1.2.11",
+    "@material-design-icons/font": "^0.14.15",
+    "material-symbols": "^0.40.0"
+  }
+}

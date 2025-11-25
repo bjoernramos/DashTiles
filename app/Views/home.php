@@ -53,7 +53,7 @@
               <div id="<?= esc($catId) ?>" class="collapse show" data-cat-id="<?= esc($catId) ?>">
               <div class="row g-3">
               <?php foreach ($list as $tile): ?>
-                <div class="col-12 col-md-<?= $colSize ?>">
+                <div class="col-12 zoom col-md-<?= $colSize ?>">
                   <?php 
                     $pingUrl = null;
                     if ($tile['type'] === 'file') {
@@ -70,7 +70,14 @@
                       $tileHref = null; // avoid making iframe tiles clickable to not interfere with embedded content
                     }
                   ?>
-                  <?php $bgStyle = !empty($tile['bg_path']) ? ('background-image:url(' . esc(base_url($tile['bg_path'])) . ');') : ''; ?>
+                  <?php 
+                    $bgStyle = '';
+                    if (!empty($tile['bg_path'])) {
+                      $bgStyle = 'background-image:url(' . esc(base_url($tile['bg_path'])) . ');';
+                    } elseif (!empty($tile['bg_color'])) {
+                      $bgStyle = 'background:' . esc($tile['bg_color']) . ';';
+                    }
+                  ?>
                   <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?>>
                   <span class="tp-ping" aria-hidden="true"></span>
                   <h4 class="h6 d-flex align-items-center gap-2 mb-2">

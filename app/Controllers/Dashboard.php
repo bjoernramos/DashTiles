@@ -203,6 +203,18 @@ class Dashboard extends BaseController
             'title'    => $title,
             'url'      => $url,
             'icon'     => trim((string) $this->request->getPost('icon')) ?: null,
+            // background color can be a simple color or a CSS gradient string
+            // Prefer explicit text field (gradient) over picker when both provided
+            'bg_color' => (function($req){
+                $txt = $req->getPost('bg_color');
+                $pick = $req->getPost('bg_color_picker');
+                $pickUsed = $req->getPost('bg_color_picker_used');
+                $txt = trim((string)($txt ?? ''));
+                $pick = trim((string)($pick ?? ''));
+                if ($txt !== '') return $txt;
+                if (($pickUsed === '1' || $pickUsed === 1) && $pick !== '') return $pick;
+                return null;
+            })($this->request),
             'text'     => trim((string) $this->request->getPost('text')) ?: null,
             'category' => trim((string) $this->request->getPost('category')) ?: null,
         ];
@@ -277,6 +289,14 @@ class Dashboard extends BaseController
             $url = trim((string) $this->request->getPost('url')) ?: $url;
         }
 
+        // Special handling for text: allow clearing the field (set to NULL) when user submits an empty value
+        $newText = $tile['text'];
+        $textPost = $this->request->getPost('text');
+        if ($textPost !== null) {
+            $t = trim((string) $textPost);
+            $newText = ($t === '') ? null : $t;
+        }
+
         $data = [
             // include user_id to satisfy model validation rules on update
             'user_id'  => (int) ($tile['user_id'] ?? $userId),
@@ -284,7 +304,7 @@ class Dashboard extends BaseController
             'title'    => trim((string) $this->request->getPost('title')) ?: $tile['title'],
             'url'      => $url,
             'icon'     => trim((string) $this->request->getPost('icon')) ?: $tile['icon'],
-            'text'     => trim((string) $this->request->getPost('text')) ?: $tile['text'],
+            'text'     => $newText,
             'category' => trim((string) $this->request->getPost('category')) ?: $tile['category'],
         ];
 
@@ -300,6 +320,7 @@ class Dashboard extends BaseController
         // Optional: delete existing icon/background
         $deleteIcon = $this->request->getPost('delete_icon');
         $deleteBg   = $this->request->getPost('delete_bg');
+        $deleteBgColor = $this->request->getPost('delete_bg_color');
         if ($deleteIcon) {
             $this->deletePublicFileIfExists($tile['icon_path'] ?? null);
             $data['icon_path'] = null;
@@ -307,6 +328,9 @@ class Dashboard extends BaseController
         if ($deleteBg) {
             $this->deletePublicFileIfExists($tile['bg_path'] ?? null);
             $data['bg_path'] = null;
+        }
+        if ($deleteBgColor) {
+            $data['bg_color'] = null;
         }
 
         // Handle new uploads (replace existing if present)
@@ -330,6 +354,23 @@ class Dashboard extends BaseController
             }
         } catch (\Throwable $e) {
             log_message('warning', 'Icon/BG upload failed on update: {msg}', ['msg' => $e->getMessage()]);
+        }
+
+        // Handle background color update/clear
+        $bgTxt = $this->request->getPost('bg_color');
+        $bgPick = $this->request->getPost('bg_color_picker');
+        $bgPickUsed = $this->request->getPost('bg_color_picker_used');
+        $bgTouch = $this->request->getPost('bg_color_touch');
+        if ($bgTouch === '1') {
+            $txt = trim((string)($bgTxt ?? ''));
+            $pick = trim((string)($bgPick ?? ''));
+            if ($txt !== '') {
+                $data['bg_color'] = $txt;
+            } elseif (($bgPickUsed === '1' || $bgPickUsed === 1) && $pick !== '') {
+                $data['bg_color'] = $pick;
+            } else {
+                $data['bg_color'] = null; // explicit clear when both empty
+            }
         }
 
         if (! $model->update($id, $data)) {
