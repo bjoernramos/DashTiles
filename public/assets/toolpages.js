@@ -105,7 +105,22 @@
         body.set('category', category);
         ids.forEach(function(id){ body.append('ids[]', String(id)); });
         fetch(REORDER_ENDPOINT, { method: 'POST', credentials: 'same-origin', body: body })
-          .catch(function(){ /* ignore */ });
+          .then(function(r){
+            if (!r.ok) { return r.json().catch(function(){ return {}; }).then(function(j){ throw new Error(j && j.error || ('HTTP ' + r.status)); }); }
+            return r.json().catch(function(){ return { ok: true }; });
+          })
+          .catch(function(err){
+            try {
+              console.error('Reorder failed:', err && err.message ? err.message : err);
+              // brief user feedback without blocking UX
+              var alert = document.createElement('div');
+              alert.className = 'alert alert-warning position-fixed top-0 end-0 m-3';
+              alert.style.zIndex = 1080;
+              alert.textContent = 'Saving order failed. Please try again.';
+              document.body.appendChild(alert);
+              setTimeout(function(){ try{document.body.removeChild(alert);}catch(_){} }, 2500);
+            } catch (_) {}
+          });
       }
 
       function onDragStart(e){

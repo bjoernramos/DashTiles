@@ -134,10 +134,7 @@
                       <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.category')) ?></label>
                       <input name="category" class="form-control" placeholder="z.B. Monitoring">
                     </div>
-                    <div class="col-6">
-                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.position')) ?></label>
-                      <input name="position" type="number" class="form-control" value="0">
-                    </div>
+                    <!-- position removed: assigned by backend automatically -->
                   </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
@@ -182,10 +179,7 @@
                       <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.category')) ?></label>
                       <input name="category" class="form-control" placeholder="z.B. Doku">
                     </div>
-                    <div class="col-6">
-                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.position')) ?></label>
-                      <input name="position" type="number" class="form-control" value="0">
-                    </div>
+                    <!-- position removed: assigned by backend automatically -->
                   </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
@@ -230,10 +224,7 @@
                       <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.category')) ?></label>
                       <input name="category" class="form-control" placeholder="z.B. Dashboards">
                     </div>
-                    <div class="col-6">
-                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.position')) ?></label>
-                      <input name="position" type="number" class="form-control" value="0">
-                    </div>
+                    <!-- position removed: assigned by backend automatically -->
                   </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
@@ -397,12 +388,7 @@
                     <input name="text" class="form-control" value="<?= esc($tile['text'] ?? '') ?>">
                   </div>
                 </div>
-                <div class="row g-2 mt-1">
-                  <div class="col-12 col-md-6">
-                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.position')) ?></label>
-                    <input name="position" type="number" class="form-control" value="<?= (int)($tile['position'] ?? 0) ?>">
-                  </div>
-                </div>
+                <!-- position removed: assignment handled by backend and reorder endpoint -->
                 <?php if (($role ?? 'user') === 'admin'): ?>
                   <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" name="is_global" value="1" id="gg<?= (int)$tile['id'] ?>" <?= (!empty($tile['is_global']) && (int)$tile['is_global'] === 1 ? 'checked' : '') ?>>

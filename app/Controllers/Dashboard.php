@@ -169,8 +169,17 @@ class Dashboard extends BaseController
             'icon'     => trim((string) $this->request->getPost('icon')) ?: null,
             'text'     => trim((string) $this->request->getPost('text')) ?: null,
             'category' => trim((string) $this->request->getPost('category')) ?: null,
-            'position' => (int) ($this->request->getPost('position') ?? 0),
         ];
+
+        // Determine next position automatically within the category for this user
+        try {
+            $pos = (new TileModel())->nextPositionForUserCategory($userId, $data['category'] ?? null);
+            $data['position'] = $pos;
+        } catch (\Throwable $e) {
+            // fallback to zero, but keep saving; log the error
+            log_message('error', 'Failed to compute next position: {msg}', ['msg' => $e->getMessage()]);
+            $data['position'] = 0;
+        }
 
         // Admins dürfen eine Kachel als global markieren
         if ($isAdmin && ($isGlobalInput === '1' || $isGlobalInput === 1)) {
@@ -226,8 +235,10 @@ class Dashboard extends BaseController
             'icon'     => trim((string) $this->request->getPost('icon')) ?: $tile['icon'],
             'text'     => trim((string) $this->request->getPost('text')) ?: $tile['text'],
             'category' => trim((string) $this->request->getPost('category')) ?: $tile['category'],
-            'position' => (int) ($this->request->getPost('position') ?? $tile['position']),
         ];
+
+        // Do not let users set arbitrary positions via the edit form; keep current backend-managed position
+        $data['position'] = (int) ($tile['position'] ?? 0);
 
         // Nur Admins dürfen die Global-Markierung setzen/entfernen
         if ($isAdmin) {
@@ -274,35 +285,59 @@ class Dashboard extends BaseController
         $category = (string) ($this->request->getPost('category') ?? '');
         $ids = $this->request->getPost('ids');
         if (!is_array($ids)) {
-            return $this->response->setStatusCode(400)->setJSON(['ok' => false]);
+            return $this->response->setStatusCode(400)->setJSON(['ok' => false, 'error' => 'Invalid ids']);
         }
         $ids = array_values(array_unique(array_map('intval', $ids)));
 
-        // Optional: Nur Kacheln berücksichtigen, die der Nutzer sehen darf
+        // Defensive: Prüfen, ob Tabelle existiert
+        try {
+            $db = \Config\Database::connect();
+            if (! $db->tableExists('user_tile_prefs')) {
+                return $this->response->setStatusCode(503)->setJSON(['ok' => false, 'error' => 'Prefs table missing, run migrations']);
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'DB connection failed in reorder: {msg}', ['msg' => $e->getMessage()]);
+            return $this->response->setStatusCode(500)->setJSON(['ok' => false, 'error' => 'DB error']);
+        }
+
+        // Nur Kacheln berücksichtigen, die der Nutzer sehen darf
         $visibleIds = array_map(static fn($r) => (int)$r['id'], (new TileModel())->forUser($userId)->findAll());
         $visibleSet = array_flip($visibleIds);
 
         $model = new UserTilePrefModel();
         $now = date('Y-m-d H:i:s');
-        $pos = 0;
-        foreach ($ids as $tid) {
-            if ($tid <= 0) continue;
-            if (!isset($visibleSet[$tid])) continue;
-            // Upsert: vorhandenen Datensatz aktualisieren, sonst neu anlegen
-            $existing = $model->where('user_id', $userId)->where('tile_id', $tid)->first();
-            $row = [
-                'user_id' => $userId,
-                'tile_id' => $tid,
-                'position' => $pos,
-                'updated_at' => $now,
-            ];
-            if ($existing) {
-                $model->where('user_id', $userId)->where('tile_id', $tid)->set($row)->update();
-            } else {
-                $row['hidden'] = 0;
-                $model->insert($row);
+
+        // Transaktion zur Vermeidung von race conditions
+        $db = \Config\Database::connect();
+        $prefsTable = $db->table('user_tile_prefs');
+        $db->transStart();
+        try {
+            $pos = 0;
+            foreach ($ids as $tid) {
+                if ($tid <= 0) continue;
+                if (!isset($visibleSet[$tid])) continue;
+                $existing = $model->where('user_id', $userId)->where('tile_id', $tid)->first();
+                $row = [
+                    'user_id' => $userId,
+                    'tile_id' => $tid,
+                    'position' => $pos,
+                    'updated_at' => $now,
+                ];
+                if ($existing) {
+                    // Query Builder verwenden, da das Model keinen Primary Key hat
+                    $prefsTable->where('user_id', $userId)->where('tile_id', $tid)->update($row);
+                } else {
+                    $row['hidden'] = 0;
+                    // Insert über Builder, um PK-Einschränkungen des Models zu vermeiden
+                    $prefsTable->insert($row);
+                }
+                $pos++;
             }
-            $pos++;
+            $db->transComplete();
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            log_message('error', 'Reorder failed for user {uid}: {msg}', ['uid' => $userId, 'msg' => $e->getMessage()]);
+            return $this->response->setStatusCode(500)->setJSON(['ok' => false, 'error' => 'Reorder failed']);
         }
 
         return $this->response->setJSON(['ok' => true]);
@@ -333,12 +368,14 @@ class Dashboard extends BaseController
 
         try {
             $model = new UserTilePrefModel();
+            $db = \Config\Database::connect();
+            $prefs = $db->table('user_tile_prefs');
             $existing = $model->where('user_id', $userId)->where('tile_id', $id)->first();
             $row = [ 'user_id' => $userId, 'tile_id' => $id, 'hidden' => 1, 'updated_at' => date('Y-m-d H:i:s') ];
             if ($existing) {
-                $model->where('user_id', $userId)->where('tile_id', $id)->set($row)->update();
+                $prefs->where('user_id', $userId)->where('tile_id', $id)->update($row);
             } else {
-                $model->insert($row);
+                $prefs->insert($row);
             }
             return redirect()->to('/dashboard')->with('success', 'Kachel für dich ausgeblendet');
         } catch (\Throwable $e) {
@@ -370,9 +407,11 @@ class Dashboard extends BaseController
 
         try {
             $model = new UserTilePrefModel();
+            $db = \Config\Database::connect();
+            $prefs = $db->table('user_tile_prefs');
             $existing = $model->where('user_id', $userId)->where('tile_id', $id)->first();
             if ($existing) {
-                $model->where('user_id', $userId)->where('tile_id', $id)->set(['hidden' => 0, 'updated_at' => date('Y-m-d H:i:s')])->update();
+                $prefs->where('user_id', $userId)->where('tile_id', $id)->update(['hidden' => 0, 'updated_at' => date('Y-m-d H:i:s')]);
             }
             return redirect()->to('/dashboard')->with('success', 'Kachel wieder eingeblendet');
         } catch (\Throwable $e) {

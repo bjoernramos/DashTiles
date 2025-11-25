@@ -95,4 +95,35 @@ class TileModel extends Model
 
         return $builder;
     }
+
+    /**
+     * Determine the next position within a category for a user's tiles.
+     * If no tiles exist yet, returns 0. Category comparison treats null/empty equally.
+     */
+    public function nextPositionForUserCategory(int $userId, ?string $category): int
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table($this->table)
+            ->select('MAX(position) AS maxpos', false)
+            ->where('user_id', $userId)
+            ->where('deleted_at', null);
+
+        $cat = trim((string)($category ?? ''));
+        if ($cat === '') {
+            // consider NULL and '' as same bucket
+            $builder->groupStart()
+                ->where('category', '')
+                ->orWhere('category IS NULL', null, false)
+            ->groupEnd();
+        } else {
+            $builder->where('category', $cat);
+        }
+
+        $row = $builder->get()->getRowArray();
+        $max = isset($row['maxpos']) ? (int) $row['maxpos'] : 0;
+        if ($row && $row['maxpos'] !== null) {
+            return $max + 1;
+        }
+        return 0;
+    }
 }

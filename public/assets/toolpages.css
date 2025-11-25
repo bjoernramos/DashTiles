@@ -16,3 +16,7 @@
 .category {
     border: none !important;
 }
+
+:root {
+    --bs-border-radius: 0.2rem; /* dein Wert */
+}
