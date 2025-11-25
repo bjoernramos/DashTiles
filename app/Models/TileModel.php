@@ -13,7 +13,7 @@ class TileModel extends Model
     protected $useTimestamps = true;
 
     protected $allowedFields = [
-        'user_id', 'is_global', 'type', 'title', 'url', 'icon', 'text', 'category', 'position',
+        'user_id', 'is_global', 'type', 'title', 'url', 'icon', 'icon_path', 'bg_path', 'text', 'category', 'position',
     ];
 
     protected $returnType = 'array';
@@ -25,6 +25,8 @@ class TileModel extends Model
         'title'    => 'required|min_length[1]|max_length[190]',
         'url'      => 'permit_empty|max_length[1024]',
         'icon'     => 'permit_empty|max_length[255]',
+        'icon_path'=> 'permit_empty|max_length[512]',
+        'bg_path'  => 'permit_empty|max_length[512]',
         'text'     => 'permit_empty|max_length[255]',
         'category' => 'permit_empty|max_length[190]',
         'position' => 'permit_empty|integer',

@@ -109,7 +109,7 @@
             </ul>
             <div class="tab-content mt-3">
               <div class="tab-pane fade show active" id="pane-link" role="tabpanel" aria-labelledby="tab-link">
-                <form method="post" action="/dashboard/tile" id="form-add-link">
+                <form method="post" action="/dashboard/tile" id="form-add-link" enctype="multipart/form-data">
                   <input type="hidden" name="type" value="link">
                   <div class="mb-2">
                     <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.title')) ?></label>
@@ -135,6 +135,16 @@
                       <input name="category" class="form-control" placeholder="z.B. Monitoring">
                     </div>
                     <!-- position removed: assigned by backend automatically -->
+                  </div>
+                  <div class="row g-2 mt-1">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Icon-Bild (optional)</label>
+                      <input type="file" name="icon_file" class="form-control" accept="image/*">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Hintergrundbild (optional)</label>
+                      <input type="file" name="bg_file" class="form-control" accept="image/*">
+                    </div>
                   </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
@@ -181,6 +191,16 @@
                     </div>
                     <!-- position removed: assigned by backend automatically -->
                   </div>
+                  <div class="row g-2 mt-1">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Icon-Bild (optional)</label>
+                      <input type="file" name="icon_file" class="form-control" accept="image/*">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Hintergrundbild (optional)</label>
+                      <input type="file" name="bg_file" class="form-control" accept="image/*">
+                    </div>
+                  </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" name="is_global" value="1" id="fg1">
@@ -209,7 +229,7 @@
                 </form>
               </div>
               <div class="tab-pane fade" id="pane-iframe" role="tabpanel" aria-labelledby="tab-iframe">
-                <form method="post" action="/dashboard/tile" id="form-add-iframe">
+                <form method="post" action="/dashboard/tile" id="form-add-iframe" enctype="multipart/form-data">
                   <input type="hidden" name="type" value="iframe">
                   <div class="mb-2">
                     <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.title')) ?></label>
@@ -225,6 +245,16 @@
                       <input name="category" class="form-control" placeholder="z.B. Dashboards">
                     </div>
                     <!-- position removed: assigned by backend automatically -->
+                  </div>
+                  <div class="row g-2 mt-1">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Icon-Bild (optional)</label>
+                      <input type="file" name="icon_file" class="form-control" accept="image/*">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Hintergrundbild (optional)</label>
+                      <input type="file" name="bg_file" class="form-control" accept="image/*">
+                    </div>
                   </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
@@ -286,11 +316,14 @@
                   $tileHref = null; // iFrame bleibt eingebettet, keine gesamte Kachel-Klickaktion
                 }
               ?>
-              <div class="border rounded p-3 h-100 tp-tile" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?> data-tile-id="<?= (int)$tile['id'] ?>" draggable="true">
+              <?php $bgStyle = !empty($tile['bg_path']) ? ('background-image:url(' . esc(base_url($tile['bg_path'])) . ');') : ''; ?>
+              <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?> data-tile-id="<?= (int)$tile['id'] ?>" draggable="true">
                 <span class="tp-ping" aria-hidden="true"></span>
                 <div class="d-flex justify-content-between align-items-center mb-2">
                   <h4 class="h6 d-flex align-items-center gap-2 m-0">
-                    <?php if (!empty($tile['icon'])): ?>
+                    <?php if (!empty($tile['icon_path'])): ?>
+                      <img src="<?= esc(base_url($tile['icon_path'])) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
+                    <?php elseif (!empty($tile['icon'])): ?>
                       <?php $icon = (string) $tile['icon']; $isImg = str_starts_with($icon, 'http://') || str_starts_with($icon, 'https://') || str_starts_with($icon, '/'); ?>
                       <?php if ($isImg): ?>
                         <img src="<?= esc($icon) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
@@ -382,10 +415,33 @@
                   <div class="col-12 col-md-6">
                     <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.icon')) ?></label>
                     <input name="icon" class="form-control" value="<?= esc($tile['icon'] ?? '') ?>">
+                    <div class="mt-1 d-flex align-items-center gap-2">
+                      <?php if (!empty($tile['icon_path'])): ?>
+                        <img src="<?= esc(base_url($tile['icon_path'])) ?>" alt="" style="height:24px;border-radius:3px">
+                        <div class="form-check ms-2">
+                          <input class="form-check-input" type="checkbox" name="delete_icon" value="1" id="di<?= (int)$tile['id'] ?>">
+                          <label class="form-check-label" for="di<?= (int)$tile['id'] ?>">Icon-Bild entfernen</label>
+                        </div>
+                      <?php endif; ?>
+                      <input type="file" name="icon_file" class="form-control" accept="image/*">
+                    </div>
                   </div>
                   <div class="col-12 col-md-6">
                     <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.text')) ?></label>
                     <input name="text" class="form-control" value="<?= esc($tile['text'] ?? '') ?>">
+                  </div>
+                </div>
+                <div class="mt-2">
+                  <label class="form-label">Hintergrundbild</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <?php if (!empty($tile['bg_path'])): ?>
+                      <img src="<?= esc(base_url($tile['bg_path'])) ?>" alt="" style="height:32px;border-radius:3px">
+                      <div class="form-check ms-2">
+                        <input class="form-check-input" type="checkbox" name="delete_bg" value="1" id="db<?= (int)$tile['id'] ?>">
+                        <label class="form-check-label" for="db<?= (int)$tile['id'] ?>">Hintergrund entfernen</label>
+                      </div>
+                    <?php endif; ?>
+                    <input type="file" name="bg_file" class="form-control" accept="image/*">
                   </div>
                 </div>
                 <!-- position removed: assignment handled by backend and reorder endpoint -->

@@ -12,6 +12,42 @@ use App\Models\UserTilePrefModel;
 
 class Dashboard extends BaseController
 {
+    /**
+     * Save uploaded image under public/uploads/tiles/{userId}/ and return relative path like uploads/tiles/{userId}/file.ext
+     */
+    private function saveUploadedImage(?\CodeIgniter\HTTP\Files\UploadedFile $file, int $userId): ?string
+    {
+        if (! $file || ! $file->isValid()) {
+            return null;
+        }
+        // basic mime whitelist for images
+        $mime = strtolower((string) $file->getMimeType());
+        $allowed = ['image/png','image/jpeg','image/jpg','image/gif','image/webp','image/svg+xml'];
+        if (! in_array($mime, $allowed, true)) {
+            return null;
+        }
+        $publicDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR;
+        $targetDir = $publicDir . 'uploads' . DIRECTORY_SEPARATOR . 'tiles' . DIRECTORY_SEPARATOR . $userId;
+        if (! is_dir($targetDir)) {
+            @mkdir($targetDir, 0775, true);
+        }
+        $newName = $file->getRandomName();
+        $file->move($targetDir, $newName);
+        return 'uploads/tiles/' . $userId . '/' . $newName;
+    }
+
+    private function deletePublicFileIfExists(?string $relPath): void
+    {
+        if (! $relPath) return;
+        // only allow deleting within uploads/tiles
+        if (strpos($relPath, 'uploads/tiles/') !== 0) return;
+        $publicDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR;
+        $abs = $publicDir . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relPath);
+        if (is_file($abs)) {
+            @unlink($abs);
+        }
+    }
+
     public function index()
     {
         $session = session();
@@ -171,6 +207,19 @@ class Dashboard extends BaseController
             'category' => trim((string) $this->request->getPost('category')) ?: null,
         ];
 
+        // handle optional uploaded icon/background
+        try {
+            $iconFile = $this->request->getFile('icon_file');
+            $bgFile   = $this->request->getFile('bg_file');
+            $iconPath = $this->saveUploadedImage($iconFile, $userId);
+            $bgPath   = $this->saveUploadedImage($bgFile, $userId);
+            if ($iconPath) { $data['icon_path'] = $iconPath; }
+            if ($bgPath)   { $data['bg_path']   = $bgPath; }
+        } catch (\Throwable $e) {
+            // ignore upload errors silently; user can retry
+            log_message('warning', 'Icon/BG upload failed on create: {msg}', ['msg' => $e->getMessage()]);
+        }
+
         // Determine next position automatically within the category for this user
         try {
             $pos = (new TileModel())->nextPositionForUserCategory($userId, $data['category'] ?? null);
@@ -246,6 +295,41 @@ class Dashboard extends BaseController
             $data['is_global'] = ($isGlobalInput === '1' || $isGlobalInput === 1) ? 1 : 0;
         }
 
+        // Optional: delete existing icon/background
+        $deleteIcon = $this->request->getPost('delete_icon');
+        $deleteBg   = $this->request->getPost('delete_bg');
+        if ($deleteIcon) {
+            $this->deletePublicFileIfExists($tile['icon_path'] ?? null);
+            $data['icon_path'] = null;
+        }
+        if ($deleteBg) {
+            $this->deletePublicFileIfExists($tile['bg_path'] ?? null);
+            $data['bg_path'] = null;
+        }
+
+        // Handle new uploads (replace existing if present)
+        try {
+            $iconFile = $this->request->getFile('icon_file');
+            if ($iconFile && $iconFile->isValid()) {
+                $newIcon = $this->saveUploadedImage($iconFile, $userId);
+                if ($newIcon) {
+                    // remove old
+                    if (!empty($tile['icon_path'])) { $this->deletePublicFileIfExists($tile['icon_path']); }
+                    $data['icon_path'] = $newIcon;
+                }
+            }
+            $bgFile = $this->request->getFile('bg_file');
+            if ($bgFile && $bgFile->isValid()) {
+                $newBg = $this->saveUploadedImage($bgFile, $userId);
+                if ($newBg) {
+                    if (!empty($tile['bg_path'])) { $this->deletePublicFileIfExists($tile['bg_path']); }
+                    $data['bg_path'] = $newBg;
+                }
+            }
+        } catch (\Throwable $e) {
+            log_message('warning', 'Icon/BG upload failed on update: {msg}', ['msg' => $e->getMessage()]);
+        }
+
         if (! $model->update($id, $data)) {
             return redirect()->back()->withInput()->with('error', implode("\n", $model->errors() ?: ['Aktualisierung fehlgeschlagen']));
         }
@@ -268,6 +352,9 @@ class Dashboard extends BaseController
         // Pivots entfernen
         (new TileUserModel())->where('tile_id', $id)->delete();
         (new TileGroupModel())->where('tile_id', $id)->delete();
+        // delete media files
+        $this->deletePublicFileIfExists($tile['icon_path'] ?? null);
+        $this->deletePublicFileIfExists($tile['bg_path'] ?? null);
         $model->delete($id);
         return redirect()->to('/dashboard')->with('success', 'Kachel gelöscht');
     }

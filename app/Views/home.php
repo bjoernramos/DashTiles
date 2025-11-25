@@ -66,10 +66,13 @@
                       $tileHref = null; // avoid making iframe tiles clickable to not interfere with embedded content
                     }
                   ?>
-                  <div class="border rounded p-3 h-100 tp-tile" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?>>
+                  <?php $bgStyle = !empty($tile['bg_path']) ? ('background-image:url(' . esc(base_url($tile['bg_path'])) . ');') : ''; ?>
+                  <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?>>
                   <span class="tp-ping" aria-hidden="true"></span>
                   <h4 class="h6 d-flex align-items-center gap-2 mb-2">
-                    <?php if (!empty($tile['icon'])): ?>
+                    <?php if (!empty($tile['icon_path'])): ?>
+                      <img src="<?= esc(base_url($tile['icon_path'])) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
+                    <?php elseif (!empty($tile['icon'])): ?>
                       <?php $icon = (string) $tile['icon']; $isImg = str_starts_with($icon, 'http://') || str_starts_with($icon, 'https://') || str_starts_with($icon, '/'); ?>
                       <?php if ($isImg): ?>
                         <img src="<?= esc($icon) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">

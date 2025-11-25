@@ -20,3 +20,10 @@
 :root {
     --bs-border-radius: 0.2rem; /* dein Wert */
 }
+
+/* Optional background image handling for tiles */
+.tp-tile {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
