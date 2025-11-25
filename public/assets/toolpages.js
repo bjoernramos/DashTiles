@@ -209,6 +209,77 @@
     });
   }
 
+  // --- Delete Tile via delegated JS (preferred approach) -----------------
+  function getCookie(name){
+    try {
+      var value = document.cookie.split('; ').find(function(row){ return row.startsWith(name + '='); });
+      return value ? decodeURIComponent(value.split('=')[1]) : '';
+    } catch(e) { return ''; }
+  }
+
+  function initDeleteTiles(){
+    // Event delegation: catch clicks on any delete button
+    document.addEventListener('click', function(ev){
+      var btn = ev.target && ev.target.closest('button[data-action="delete-tile"][data-tile-id]');
+      if (!btn) return;
+      ev.preventDefault();
+
+      var id = parseInt(btn.getAttribute('data-tile-id') || '0', 10);
+      if (!id) return;
+      var url = btn.getAttribute('data-delete-url') || ('/dashboard/tile/' + id + '/delete');
+      var confirmText = btn.getAttribute('data-confirm-text') || 'Delete this tile?';
+
+      // Confirmation
+      var ok = false;
+      try { ok = window.confirm(confirmText); } catch(_) { ok = true; }
+      if (!ok) return;
+
+      // Disable while processing
+      var prevHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+      // Prepare POST request. CodeIgniter with CSRF cookie mode accepts X-CSRF-TOKEN header
+      var headers = { 'Accept': 'application/json' };
+      var csrf = getCookie('csrf_cookie_name'); // matches app/Config/Security.php
+      if (csrf) headers['X-CSRF-TOKEN'] = csrf; // matches headerName in Security.php
+
+      fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: headers,
+        // No body required for delete in this app; send an empty form body to please parsers
+        body: new URLSearchParams()
+      })
+      .then(function(res){
+        // Accept 200..299 as success even if HTML redirects are returned
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res;
+      })
+      .then(function(){
+        // Remove the tile from DOM
+        try {
+          var tile = btn.closest('.tp-tile');
+          var col = tile ? tile.closest('[class*="col-"]') : null;
+          var toRemove = col || tile;
+          if (toRemove) {
+            toRemove.style.transition = 'opacity .15s ease-out, height .15s ease-out, margin .15s ease-out, padding .15s ease-out';
+            toRemove.style.opacity = '0';
+            setTimeout(function(){ try { toRemove.remove(); } catch(_){} }, 180);
+          }
+        } catch(_) {}
+      })
+      .catch(function(err){
+        // Feedback on error
+        try { alert('Delete failed: ' + (err && err.message ? err.message : 'unknown error')); } catch(_) {}
+      })
+      .finally(function(){
+        btn.disabled = false;
+        btn.innerHTML = prevHtml;
+      });
+    });
+  }
+
   // --- Init ---------------------------------------------------------------
   function init(){
     runPing();
@@ -217,6 +288,7 @@
     initHomeCategoryCollapse();
     initSortableTiles();
     initAddTileModalSubmitBinding();
+    initDeleteTiles();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

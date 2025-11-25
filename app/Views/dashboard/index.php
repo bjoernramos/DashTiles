@@ -326,9 +326,14 @@
                     <button type="button" class="btn btn-sm btn-outline-secondary" title="Drag" data-drag-handle="1"><span class="material-symbols-outlined" aria-hidden="true">drag_indicator</span></button>
                     <?php if ($canManage): ?>
                       <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>"><?= esc(lang('App.actions.edit')) ?></button>
-                      <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/delete" onsubmit="return confirm('<?= esc(lang('App.pages.dashboard.delete_tile_confirm')) ?>')" class="m-0 d-inline">
-                        <button class="btn btn-sm btn-outline-danger" type="submit"><?= esc(lang('App.actions.delete')) ?></button>
-                      </form>
+                      <button type="button"
+                              class="btn btn-sm btn-outline-danger"
+                              data-action="delete-tile"
+                              data-tile-id="<?= (int)$tile['id'] ?>"
+                              data-delete-url="<?= esc(site_url('dashboard/tile/' . (int)$tile['id'] . '/delete')) ?>"
+                              data-confirm-text="<?= esc(lang('App.pages.dashboard.delete_tile_confirm')) ?>">
+                        <?= esc(lang('App.actions.delete')) ?>
+                      </button>
                     <?php endif; ?>
                     <?php if (!empty($tile['is_global']) && (int)$tile['is_global'] === 1): ?>
                       <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/hide" class="m-0 d-inline">
