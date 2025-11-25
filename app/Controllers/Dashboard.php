@@ -278,6 +278,8 @@ class Dashboard extends BaseController
         }
 
         $data = [
+            // include user_id to satisfy model validation rules on update
+            'user_id'  => (int) ($tile['user_id'] ?? $userId),
             'type'     => in_array($type, ['link','iframe','file'], true) ? $type : $tile['type'],
             'title'    => trim((string) $this->request->getPost('title')) ?: $tile['title'],
             'url'      => $url,

@@ -473,6 +473,7 @@
                   </div>
                 </div>
                     </div>
+                      </form>
                     <div class="modal-footer">
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= esc(lang('App.actions.close')) ?></button>
                       <button type="submit" class="btn btn-primary" form="editForm<?= (int)$tile['id'] ?>"><?= esc(lang('App.actions.save')) ?></button>
