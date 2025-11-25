@@ -315,19 +315,35 @@ class Dashboard extends BaseController
         if ($userId <= 0) {
             return redirect()->to('/login');
         }
+        // Tile prüfen
         $tile = (new TileModel())->find($id);
         if (! $tile || (int)($tile['is_global'] ?? 0) !== 1) {
             return redirect()->to('/dashboard')->with('error', 'Kachel nicht gefunden');
         }
-        $model = new UserTilePrefModel();
-        $existing = $model->where('user_id', $userId)->where('tile_id', $id)->first();
-        $row = [ 'user_id' => $userId, 'tile_id' => $id, 'hidden' => 1, 'updated_at' => date('Y-m-d H:i:s') ];
-        if ($existing) {
-            $model->where('user_id', $userId)->where('tile_id', $id)->set($row)->update();
-        } else {
-            $model->insert($row);
+
+        // Defensive: Prüfen, ob Tabelle für Benutzerpräferenzen existiert
+        try {
+            $db = \Config\Database::connect();
+            if (! $db->tableExists('user_tile_prefs')) {
+                return redirect()->to('/dashboard')->with('error', 'Funktion nicht verfügbar. Bitte Migrationen ausführen (php spark migrate).');
+            }
+        } catch (\Throwable $e) {
+            return redirect()->to('/dashboard')->with('error', 'Interner Fehler (DB-Verbindung).');
         }
-        return redirect()->to('/dashboard')->with('success', 'Kachel für dich ausgeblendet');
+
+        try {
+            $model = new UserTilePrefModel();
+            $existing = $model->where('user_id', $userId)->where('tile_id', $id)->first();
+            $row = [ 'user_id' => $userId, 'tile_id' => $id, 'hidden' => 1, 'updated_at' => date('Y-m-d H:i:s') ];
+            if ($existing) {
+                $model->where('user_id', $userId)->where('tile_id', $id)->set($row)->update();
+            } else {
+                $model->insert($row);
+            }
+            return redirect()->to('/dashboard')->with('success', 'Kachel für dich ausgeblendet');
+        } catch (\Throwable $e) {
+            return redirect()->to('/dashboard')->with('error', 'Speichern fehlgeschlagen.');
+        }
     }
 
     /** Hebt das Verstecken einer globalen Kachel für den aktuellen Nutzer auf */
@@ -341,12 +357,27 @@ class Dashboard extends BaseController
         if (! $tile || (int)($tile['is_global'] ?? 0) !== 1) {
             return redirect()->to('/dashboard')->with('error', 'Kachel nicht gefunden');
         }
-        $model = new UserTilePrefModel();
-        $existing = $model->where('user_id', $userId)->where('tile_id', $id)->first();
-        if ($existing) {
-            $model->where('user_id', $userId)->where('tile_id', $id)->set(['hidden' => 0, 'updated_at' => date('Y-m-d H:i:s')])->update();
+
+        // Defensive: Prüfen, ob Tabelle existiert
+        try {
+            $db = \Config\Database::connect();
+            if (! $db->tableExists('user_tile_prefs')) {
+                return redirect()->to('/dashboard')->with('error', 'Funktion nicht verfügbar. Bitte Migrationen ausführen (php spark migrate).');
+            }
+        } catch (\Throwable $e) {
+            return redirect()->to('/dashboard')->with('error', 'Interner Fehler (DB-Verbindung).');
         }
-        return redirect()->to('/dashboard')->with('success', 'Kachel wieder eingeblendet');
+
+        try {
+            $model = new UserTilePrefModel();
+            $existing = $model->where('user_id', $userId)->where('tile_id', $id)->first();
+            if ($existing) {
+                $model->where('user_id', $userId)->where('tile_id', $id)->set(['hidden' => 0, 'updated_at' => date('Y-m-d H:i:s')])->update();
+            }
+            return redirect()->to('/dashboard')->with('success', 'Kachel wieder eingeblendet');
+        } catch (\Throwable $e) {
+            return redirect()->to('/dashboard')->with('error', 'Speichern fehlgeschlagen.');
+        }
     }
 
     public function file(int $id)

@@ -27,6 +27,8 @@ services:
   mariadb:
     image: mariadb:11
     container_name: toolpages-db
+    ports:
+      - "3306:3306"
     environment:
       - MARIADB_DATABASE=toolpages
       - MARIADB_USER=toolpages

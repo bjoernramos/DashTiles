@@ -272,25 +272,6 @@
         </div>
       </div>
     </div>
-    <script>
-      (function(){
-        const btn = document.getElementById('submitAddTile');
-        if (!btn) return;
-        function setFormByTarget(target){
-          switch(target){
-            case '#pane-link': btn.setAttribute('form','form-add-link'); break;
-            case '#pane-file': btn.setAttribute('form','form-add-file'); break;
-            case '#pane-iframe': btn.setAttribute('form','form-add-iframe'); break;
-          }
-        }
-        document.querySelectorAll('#addTileModal [data-bs-toggle="tab"]').forEach(function(tab){
-          tab.addEventListener('shown.bs.tab', function(ev){
-            const target = ev.target.getAttribute('data-bs-target');
-            setFormByTarget(target);
-          });
-        });
-      })();
-    </script>
 
     <?php 
       $cols = max(1, min(6, (int)$columns));
@@ -344,7 +325,7 @@
                     <!-- Drag handle visual indicator -->
                     <button type="button" class="btn btn-sm btn-outline-secondary" title="Drag" data-drag-handle="1"><span class="material-symbols-outlined" aria-hidden="true">drag_indicator</span></button>
                     <?php if ($canManage): ?>
-                      <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>"><?= esc(lang('App.actions.edit')) ?></button>
+                      <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>"><?= esc(lang('App.actions.edit')) ?></button>
                       <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/delete" onsubmit="return confirm('<?= esc(lang('App.pages.dashboard.delete_tile_confirm')) ?>')" class="m-0 d-inline">
                         <button class="btn btn-sm btn-outline-danger" type="submit"><?= esc(lang('App.actions.delete')) ?></button>
                       </form>
@@ -368,87 +349,91 @@
                   <?php endif; ?>
                 <?php endif; ?>
                 <?php if ($canManage): ?>
-                <!-- Edit Tile Modal -->
-                <div class="modal fade" id="editTileModal<?= (int)$tile['id'] ?>" tabindex="-1" aria-hidden="true">
-                  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title"><?= esc(lang('App.pages.dashboard.edit_tile')) ?> • <?= esc($tile['title']) ?></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                      </div>
-                      <div class="modal-body">
-                        <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>" enctype="multipart/form-data" id="editForm<?= (int)$tile['id'] ?>">
-                  <input type="hidden" name="type" value="<?= esc($tile['type']) ?>">
-                  <div class="row g-2">
-                    <div class="col-12 col-md-6">
-                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.title')) ?></label>
-                      <input name="title" class="form-control" value="<?= esc($tile['title']) ?>">
+                <!-- Edit Tile Modal (moved outside of .tp-tile to avoid event/z-index conflicts) -->
+                <?php /* Modal markup is rendered after the tile container to ensure reliable Bootstrap behavior */ ?>
+                <?php endif; ?>
+              </div>
+              <?php if ($canManage): ?>
+              <!-- Edit Tile Modal -->
+              <div class="modal fade" id="editTileModal<?= (int)$tile['id'] ?>" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title"><?= esc(lang('App.pages.dashboard.edit_tile')) ?> • <?= esc($tile['title']) ?></h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="col-12 col-md-6">
-                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.category')) ?></label>
-                      <input name="category" class="form-control" value="<?= esc($tile['category'] ?? '') ?>">
-                    </div>
+                    <div class="modal-body">
+                      <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>" enctype="multipart/form-data" id="editForm<?= (int)$tile['id'] ?>">
+                <input type="hidden" name="type" value="<?= esc($tile['type']) ?>">
+                <div class="row g-2">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.title')) ?></label>
+                    <input name="title" class="form-control" value="<?= esc($tile['title']) ?>">
                   </div>
-                  <?php if ($tile['type'] !== 'file'): ?>
-                    <label class="form-label mt-2"><?= esc(lang('App.pages.dashboard.labels.url')) ?></label>
-                    <input name="url" class="form-control" value="<?= esc($tile['url'] ?? '') ?>">
-                  <?php else: ?>
-                    <label class="form-label mt-2"><?= esc(lang('App.pages.dashboard.labels.new_file')) ?></label>
-                    <input type="file" name="file" class="form-control">
-                  <?php endif; ?>
-                  <div class="row g-2 mt-1">
-                    <div class="col-12 col-md-6">
-                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.icon')) ?></label>
-                      <input name="icon" class="form-control" value="<?= esc($tile['icon'] ?? '') ?>">
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.text')) ?></label>
-                      <input name="text" class="form-control" value="<?= esc($tile['text'] ?? '') ?>">
-                    </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.category')) ?></label>
+                    <input name="category" class="form-control" value="<?= esc($tile['category'] ?? '') ?>">
                   </div>
-                  <div class="row g-2 mt-1">
-                    <div class="col-12 col-md-6">
-                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.position')) ?></label>
-                      <input name="position" type="number" class="form-control" value="<?= (int)($tile['position'] ?? 0) ?>">
-                    </div>
+                </div>
+                <?php if ($tile['type'] !== 'file'): ?>
+                  <label class="form-label mt-2"><?= esc(lang('App.pages.dashboard.labels.url')) ?></label>
+                  <input name="url" class="form-control" value="<?= esc($tile['url'] ?? '') ?>">
+                <?php else: ?>
+                  <label class="form-label mt-2"><?= esc(lang('App.pages.dashboard.labels.new_file')) ?></label>
+                  <input type="file" name="file" class="form-control">
+                <?php endif; ?>
+                <div class="row g-2 mt-1">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.icon')) ?></label>
+                    <input name="icon" class="form-control" value="<?= esc($tile['icon'] ?? '') ?>">
                   </div>
-                  <?php if (($role ?? 'user') === 'admin'): ?>
-                    <div class="form-check mt-2">
-                      <input class="form-check-input" type="checkbox" name="is_global" value="1" id="gg<?= (int)$tile['id'] ?>" <?= (!empty($tile['is_global']) && (int)$tile['is_global'] === 1 ? 'checked' : '') ?>>
-                      <label class="form-check-label" for="gg<?= (int)$tile['id'] ?>"><?= esc(lang('App.pages.dashboard.labels.global')) ?></label>
-                    </div>
-                  <?php endif; ?>
-                  <div class="row g-2 mt-1">
-                    <div class="col-12 col-md-6">
-                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.allowed_users')) ?></label>
-                      <?php $selUsers = (array) (($tileUserMap ?? [])[(int)$tile['id']] ?? []); ?>
-                      <select class="form-select" name="visible_user_ids[]" multiple size="8">
-                        <?php foreach (($usersList ?? []) as $u): ?>
-                          <?php $udisp = trim(($u['display_name'] ?? '') ?: ($u['username'] ?? (string)$u['id'])); ?>
-                          <option value="<?= (int)$u['id'] ?>" <?= in_array((int)$u['id'], $selUsers, true) ? 'selected' : '' ?>><?= esc($udisp) ?></option>
-                        <?php endforeach; ?>
-                      </select>
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.allowed_groups')) ?></label>
-                      <?php $selGroups = (array) (($tileGroupMap ?? [])[(int)$tile['id']] ?? []); ?>
-                      <select class="form-select" name="visible_group_ids[]" multiple size="8">
-                        <?php foreach (($groupsList ?? []) as $g): ?>
-                          <option value="<?= (int)$g['id'] ?>" <?= in_array((int)$g['id'], $selGroups, true) ? 'selected' : '' ?>><?= esc($g['name']) ?></option>
-                        <?php endforeach; ?>
-                      </select>
-                    </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.text')) ?></label>
+                    <input name="text" class="form-control" value="<?= esc($tile['text'] ?? '') ?>">
                   </div>
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= esc(lang('App.actions.close')) ?></button>
-                        <button type="submit" class="btn btn-primary" form="editForm<?= (int)$tile['id'] ?>"><?= esc(lang('App.actions.save')) ?></button>
-                      </div>
+                </div>
+                <div class="row g-2 mt-1">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.position')) ?></label>
+                    <input name="position" type="number" class="form-control" value="<?= (int)($tile['position'] ?? 0) ?>">
+                  </div>
+                </div>
+                <?php if (($role ?? 'user') === 'admin'): ?>
+                  <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" name="is_global" value="1" id="gg<?= (int)$tile['id'] ?>" <?= (!empty($tile['is_global']) && (int)$tile['is_global'] === 1 ? 'checked' : '') ?>>
+                    <label class="form-check-label" for="gg<?= (int)$tile['id'] ?>"><?= esc(lang('App.pages.dashboard.labels.global')) ?></label>
+                  </div>
+                <?php endif; ?>
+                <div class="row g-2 mt-1">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.allowed_users')) ?></label>
+                    <?php $selUsers = (array) (($tileUserMap ?? [])[(int)$tile['id']] ?? []); ?>
+                    <select class="form-select" name="visible_user_ids[]" multiple size="8">
+                      <?php foreach (($usersList ?? []) as $u): ?>
+                        <?php $udisp = trim(($u['display_name'] ?? '') ?: ($u['username'] ?? (string)$u['id'])); ?>
+                        <option value="<?= (int)$u['id'] ?>" <?= in_array((int)$u['id'], $selUsers, true) ? 'selected' : '' ?>><?= esc($udisp) ?></option>
+                      <?php endforeach; ?>
+                    </select>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.allowed_groups')) ?></label>
+                    <?php $selGroups = (array) (($tileGroupMap ?? [])[(int)$tile['id']] ?? []); ?>
+                    <select class="form-select" name="visible_group_ids[]" multiple size="8">
+                      <?php foreach (($groupsList ?? []) as $g): ?>
+                        <option value="<?= (int)$g['id'] ?>" <?= in_array((int)$g['id'], $selGroups, true) ? 'selected' : '' ?>><?= esc($g['name']) ?></option>
+                      <?php endforeach; ?>
+                    </select>
+                  </div>
+                </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= esc(lang('App.actions.close')) ?></button>
+                      <button type="submit" class="btn btn-primary" form="editForm<?= (int)$tile['id'] ?>"><?= esc(lang('App.actions.save')) ?></button>
                     </div>
                   </div>
                 </div>
-                <?php endif; ?>
               </div>
+              <?php endif; ?>
             </div>
           <?php endforeach; ?>
           </div>

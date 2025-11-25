@@ -32,15 +32,9 @@
   crossorigin="anonymous"
 >
 <meta name="color-scheme" content="light dark" />
+<!-- App endpoints for system-wide JS -->
+<meta name="tp:ping" content="<?= esc(site_url('ping')) ?>">
+<meta name="tp:reorder" content="<?= esc(site_url('dashboard/reorder')) ?>">
+<!-- System-wide custom CSS -->
+<link rel="stylesheet" href="<?= esc(base_url('assets/toolpages.css')) ?>">
 <!-- Hinweis: Für Multi-Selects wird die native Bootstrap-Multiple-Select verwendet (kein zusätzliches Plugin). -->
-<style>
-/* Global helpers for tile ping indicator */
-.tp-tile { position: relative; }
-.tp-tile[data-href] { cursor: pointer; }
-.tp-ping { position: absolute; right: 8px; bottom: 8px; width: 10px; height: 10px; border-radius: 50%; background: #6c757d; box-shadow: 0 0 0 1px rgba(0,0,0,.2) inset; }
-.tp-ping.ok { background: #28a745; }
-.tp-ping.err { background: #dc3545; }
-@media (prefers-color-scheme: dark) {
-  .tp-ping { box-shadow: 0 0 0 1px rgba(255,255,255,.25) inset; }
-}
-</style>
