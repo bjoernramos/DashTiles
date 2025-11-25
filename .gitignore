@@ -1,3 +1,4 @@
 /.env
 /.idea/*
 /writable/debugbar/*
+/writable/session/*
