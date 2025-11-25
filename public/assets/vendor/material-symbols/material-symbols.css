@@ -1,0 +1,32 @@
+/* Local Material Symbols (Outlined) font setup
+   Place the WOFF2 file at:
+   public/assets/vendor/material-symbols/fonts/material-symbols-outlined.woff2
+
+   You can obtain it via npm or manual download. Example (npm):
+     npm i material-symbols
+     cp node_modules/material-symbols/variablefont/MaterialSymbolsOutlined[wght].woff2 \
+        public/assets/vendor/material-symbols/fonts/material-symbols-outlined.woff2
+*/
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 100 700;
+  /* The fonts directory is a sibling of this CSS file: ./fonts/material-symbols-outlined.woff2 */
+  src: url('fonts/material-symbols-outlined.woff2') format('woff2');
+  font-display: swap;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: 400;
+  font-style: normal;
+  font-size: 1em;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}

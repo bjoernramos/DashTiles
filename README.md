@@ -12,7 +12,39 @@ Roadmap (current session)
 7) Admin-defined global tiles (visible for all users)
 8) Visibility per tile: assign to specific users and/or groups; groups are admin-managed
 9) Feature tests and docs
-10) Bootstrap 5 Styles via CDN (basic UI styling)
+10) Bootstrap 5 Styles lokal eingebunden
+
+Local Icon Sets (line-md + Material Design Icons)
+- Icon‑Sets werden lokal selbst gehostet und über npm bereitgestellt. Es gibt keine externen CDN‑Abhängigkeiten mehr. Die Assets werden per postinstall in public/assets/vendor/ synchronisiert oder direkt aus /node_modules referenziert.
+
+Included integrations
+- Material Symbols (Outlined): lokale CSS unter public/assets/vendor/material-symbols/material-symbols.css (Fonts aus npm).
+- Material Icons (legacy baseline): lokale CSS unter public/assets/vendor/material-icons/material-icons.css (Fonts aus npm).
+- line-md icon set: via Iconify Runtime lokal. Die App lädt die lokale Runtime und die line‑md JSON aus public/assets/vendor oder ersatzweise aus /node_modules. Keine CDN‑Requests.
+
+NPM workflow (preferred)
+1) Install Node.js 18+ on your workstation or run this in CI.
+2) At the repo root, run:
+   - npm i
+   This will install the required npm packages and automatically copy the needed runtime/font files into public/assets/vendor via a postinstall script.
+3) You can re-run the copy step at any time with:
+   - npm run icons:sync
+4) What gets synced:
+   - Iconify runtime → public/assets/vendor/iconify/iconify.min.js
+   - line-md icons.json → public/assets/vendor/iconify/line-md.json
+   - Material Symbols WOFF2 → public/assets/vendor/material-symbols/fonts/material-symbols-outlined.woff2
+   - Material Icons WOFF2 → public/assets/vendor/material-icons/fonts/MaterialIcons-Regular.woff2
+5) Wenn eine Datei fehlt, greift die App auf die lokale /node_modules‑Quelle zurück. Es werden keine externen CDNs verwendet.
+
+Usage in tiles (icon field)
+- line-md via Iconify: set icon to e.g. "line-md:home" → renders <span class="iconify" data-icon="line-md:home"></span>
+- Material Icons (legacy baseline): set icon to e.g. "mi:home" → renders <span class="material-icons">home</span>
+- Material Symbols (outlined): set icon to e.g. "ms:home" → renders <span class="material-symbols-outlined">home</span>
+- Image URL or class name still supported: if icon starts with http(s):// or / it is treated as an image URL; otherwise it is used as a CSS class name (for custom icon libraries).
+
+Notes
+- Es gibt keine CDN‑Fallbacks mehr. Stelle sicher, dass npm‑Abhängigkeiten installiert sind (npm i), damit alle Assets lokal vorhanden sind.
+- Hochgeladene Icon-/Hintergrundbilder pro Kachel haben weiterhin Priorität vor dem Icon‑Feld.
 
 Quickstart (Docker)
 - Requirements: Docker, Docker Compose
@@ -24,12 +56,26 @@ Quickstart (Docker)
 6) docker compose exec app php spark db:seed AdminSeeder
 7) Open http://localhost:8080/
 
+Notes for Docker build/runtime
+- Der App-Container baut die Frontend-Assets jetzt vollständig im Dockerfile:
+  - Während des Builds werden npm-Abhängigkeiten installiert und das postinstall-Skript kopiert alle benötigten Dateien nach public/assets/vendor/.
+  - Ein Snapshot dieser erzeugten Assets wird im Image unter /opt/toolpages-assets/vendor abgelegt.
+  - Ein Entrypoint-Skript kopiert beim Container-Start fehlende Dateien aus dem Snapshot in das (gemountete) public/assets/vendor/, ohne bestehende Dateien zu überschreiben. So sind die Assets auch bei Bind-Mounts zuverlässig vorhanden.
+- Es gibt keinen separaten "assets"-Service mehr in docker-compose; die Images enthalten die Assets bereits. 404-Probleme bei CSS/JS/Fonts sollten damit nicht mehr auftreten.
+
+Asset-Lade-Reihenfolge im Frontend
+- Bootstrap CSS/JS und Iconify/Fonts werden primär aus public/assets/vendor geladen (vom Build erzeugt und zur Laufzeit gesichert).
+- Fallback: Die Templates enthalten einen optionalen Fallback auf /node_modules, der im Normalfall nicht benötigt wird. Externe CDNs werden nicht verwendet.
+
+NodeModules (optional)
+- Die Anwendung ist nicht mehr darauf angewiesen, node_modules zur Laufzeit auszuliefern. Alle benötigten Dateien werden beim Image-Build in public/assets/vendor erzeugt und als Snapshot gespeichert.
+- Der vorhandene /node_modules-Fallback in den Templates ist lediglich eine Schutzmaßnahme, falls du lokal ohne rebuild experimentierst. Für Produktion ist er nicht erforderlich.
+
 UI/Styles
-- Bootstrap 5 is included via CDN on all main pages (Startseite, Login, Dashboard, Admin-Users).
-- To self-host Bootstrap instead of using CDN, replace the partials:
+- Bootstrap 5 ist lokal eingebunden aus public/assets/vendor/bootstrap (vom Build erzeugt). Die Partials sind:
   - app/Views/partials/bootstrap_head.php
   - app/Views/partials/bootstrap_scripts.php
-  with local asset references (e.g., /public/vendor/bootstrap/*.css and *.js) and adjust your build/deploy accordingly.
+  Ein optionaler Fallback auf /node_modules ist vorhanden, sollte aber im regulären Betrieb nicht benötigt werden.
 
 Default admin (first run)
 - username: admin

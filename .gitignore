@@ -5,3 +5,4 @@
 /writable/session/*
 /writable/logs/*
 /public/uploads/tiles/*
+node_modules/

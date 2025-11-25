@@ -1,9 +1,18 @@
-<!-- Bootstrap 5 Bundle JS (with Popper) via CDN -->
-<script
-  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-  crossorigin="anonymous"
-></script>
+<!-- Bootstrap 5 Bundle JS (lokal) → primär aus public/assets/vendor, Fallback auf /node_modules -->
+<script>
+(function(){
+  try {
+    var s = document.createElement('script');
+    s.src = '<?= esc(base_url('assets/vendor/bootstrap/bootstrap.bundle.min.js')) ?>';
+    s.onerror = function(){
+      var f = document.createElement('script');
+      f.src = '/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js';
+      document.body.appendChild(f);
+    };
+    document.body.appendChild(s);
+  } catch(e) { /* noop */ }
+})();
+</script>
 <!-- System-wide custom JS -->
 <script src="<?= esc(base_url('assets/toolpages.js')) ?>"></script>
 

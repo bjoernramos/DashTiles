@@ -14,7 +14,11 @@
       <div class="card-body">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
           <h1 class="h3 m-0"><?= esc(lang('App.brand')) ?></h1>
+
         </div>
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <span id="clock"></span>
+          </div>
 
         <?php if (!session()->get('user_id')): ?>
           <p class="mb-0"><?= esc(lang('App.pages.home.welcome_logged_out')) ?></p>
@@ -77,7 +81,17 @@
                       <?php if ($isImg): ?>
                         <img src="<?= esc($icon) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
                       <?php else: ?>
-                        <span class="<?= esc($icon) ?>" aria-hidden="true"></span>
+                        <?php if (str_starts_with($icon, 'line-md:')): ?>
+                          <span class="iconify" data-icon="<?= esc($icon) ?>" aria-hidden="true"></span>
+                        <?php elseif (str_starts_with($icon, 'mi:')): ?>
+                          <?php $iname = substr($icon, 3); ?>
+                          <span class="material-icons" aria-hidden="true"><?= esc($iname) ?></span>
+                        <?php elseif (str_starts_with($icon, 'ms:')): ?>
+                          <?php $iname = substr($icon, 3); ?>
+                          <span class="material-symbols-outlined" aria-hidden="true"><?= esc($iname) ?></span>
+                        <?php else: ?>
+                          <span class="<?= esc($icon) ?>" aria-hidden="true"></span>
+                        <?php endif; ?>
                       <?php endif; ?>
                     <?php endif; ?>
                     <?= esc($tile['title']) ?>

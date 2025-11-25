@@ -32,33 +32,36 @@
       <div class="alert alert-success" role="alert"><?= esc(session()->getFlashdata('success')) ?></div>
     <?php endif; ?>
 
-    <div class="card shadow-sm mb-3">
-      <div class="card-body">
-        <form class="row g-3 align-items-end" method="post" action="/dashboard/settings">
-          <div class="col-auto">
-            <label for="columns" class="form-label"><?= esc(lang('App.pages.dashboard.columns')) ?></label>
-            <select id="columns" name="columns" class="form-select">
-              <?php for ($i=1;$i<=6;$i++): ?>
-                <option value="<?= $i ?>" <?= ((int)$columns === $i ? 'selected' : '') ?>><?= $i ?></option>
-              <?php endfor; ?>
-            </select>
-          </div>
-          <div class="col-auto">
-            <button class="btn btn-primary" type="submit"><?= esc(lang('App.pages.dashboard.save_layout')) ?></button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <div class="card shadow-sm mb-3">
+          <div class="card-body">
+              <form class="row g-3 align-items-end" id="saveGrid" method="post" action="/dashboard/settings">
 
-    <div class="card shadow-sm mb-3">
-      <div class="card-body d-flex justify-content-between align-items-center">
-        <div>
-          <strong><?= esc(lang('App.pages.dashboard.add_tile')) ?></strong>
-          <div class="text-muted small"><?= esc(lang('App.pages.dashboard.tabs.link')) ?>, <?= esc(lang('App.pages.dashboard.tabs.file')) ?> <?= esc(lang('App.pages.dashboard.tabs.iframe')) ?></div>
-        </div>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTileModal"><?= esc(lang('App.pages.dashboard.add')) ?></button>
+                  <div class="col-auto">
+                      <label for="columns" class="form-label mb-0">
+                          <?= esc(lang('App.pages.dashboard.columns')) ?>
+                      </label>
+                      <select id="columns" name="columns" class="form-select" onchange="document.getElementById('saveGrid').requestSubmit()">
+                          <?php for ($i = 1; $i <= 6; $i++): ?>
+                              <option value="<?= $i ?>" <?= ((int)$columns === $i ? 'selected' : '') ?>>
+                                  <?= $i ?>
+                              </option>
+                          <?php endfor; ?>
+                      </select>
+                  </div>
+
+
+                  <div class="col-auto">
+                      <button class="btn btn-link p-0 m-0" type="button"
+                              data-bs-toggle="modal" data-bs-target="#addTileModal">
+                          <span class="material-icons">add</span>
+                      </button>
+                  </div>
+
+              </form>
+          </div>
       </div>
-    </div>
+
+
 
     <?php if (!empty($hiddenTiles)): ?>
     <div class="card shadow-sm mb-3">
@@ -299,7 +302,7 @@
       $colSize = (int) max(1, min(12, floor(12 / $cols)));
     ?>
     <?php foreach ($grouped as $category => $list): ?>
-      <div class="card shadow-sm mb-3">
+      <div class="card mb-3 category">
         <div class="card-body">
           <h3 class="h5 mb-3"><?= esc($category) ?></h3>
           <div class="row g-3" data-sortable="1" data-category="<?= esc($category) ?>">
@@ -320,6 +323,7 @@
               <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?> data-tile-id="<?= (int)$tile['id'] ?>" draggable="true">
                 <span class="tp-ping" aria-hidden="true"></span>
                 <div class="d-flex justify-content-between align-items-center mb-2">
+
                   <h4 class="h6 d-flex align-items-center gap-2 m-0">
                     <?php if (!empty($tile['icon_path'])): ?>
                       <img src="<?= esc(base_url($tile['icon_path'])) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
@@ -328,7 +332,17 @@
                       <?php if ($isImg): ?>
                         <img src="<?= esc($icon) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
                       <?php else: ?>
-                        <span class="<?= esc($icon) ?>" aria-hidden="true"></span>
+                        <?php if (str_starts_with($icon, 'line-md:')): ?>
+                          <span class="iconify" data-icon="<?= esc($icon) ?>" aria-hidden="true"></span>
+                        <?php elseif (str_starts_with($icon, 'mi:')): ?>
+                          <?php $iname = substr($icon, 3); ?>
+                          <span class="material-icons" aria-hidden="true"><?= esc($iname) ?></span>
+                        <?php elseif (str_starts_with($icon, 'ms:')): ?>
+                          <?php $iname = substr($icon, 3); ?>
+                          <span class="material-symbols-outlined" aria-hidden="true"><?= esc($iname) ?></span>
+                        <?php else: ?>
+                          <span class="<?= esc($icon) ?>" aria-hidden="true"></span>
+                        <?php endif; ?>
                       <?php endif; ?>
                     <?php endif; ?>
                     <?= esc($tile['title']) ?>
@@ -347,21 +361,25 @@
                   ?>
                   <div class="btn-group">
                     <!-- Drag handle visual indicator -->
-                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Drag" data-drag-handle="1"><span class="material-symbols-outlined" aria-hidden="true">drag_indicator</span></button>
+
                     <?php if ($canManage): ?>
-                      <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>"><?= esc(lang('App.actions.edit')) ?></button>
+                      <button type="button" class="btn btn-sm text-secondary text-decoration-none border-0 bg-transparent p-1" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>"><?= esc(lang('App.actions.edit')) ?></button>
                       <button type="button"
-                              class="btn btn-sm btn-outline-danger"
+                              class="btn btn-sm text-danger text-decoration-none border-0 bg-transparent p-1"
                               data-action="delete-tile"
                               data-tile-id="<?= (int)$tile['id'] ?>"
                               data-delete-url="<?= esc(site_url('dashboard/tile/' . (int)$tile['id'] . '/delete')) ?>"
                               data-confirm-text="<?= esc(lang('App.pages.dashboard.delete_tile_confirm')) ?>">
-                        <?= esc(lang('App.actions.delete')) ?>
+                          <span class="material-symbols-rounded">delete</span>
                       </button>
                     <?php endif; ?>
                     <?php if (!empty($tile['is_global']) && (int)$tile['is_global'] === 1): ?>
                       <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/hide" class="m-0 d-inline">
-                        <button class="btn btn-sm btn-outline-warning" type="submit"><?= esc(lang('App.actions.hide')) ?></button>
+                        <button class="btn btn-sm text-warning text-decoration-none border-0 bg-transparent p-1" type="submit">
+                        <span class="material-symbols-outlined">
+                            disabled_visible
+                        </span>
+                        </button>
                       </form>
                     <?php endif; ?>
                   </div>
@@ -418,10 +436,9 @@
                     <div class="mt-1 d-flex align-items-center gap-2">
                       <?php if (!empty($tile['icon_path'])): ?>
                         <img src="<?= esc(base_url($tile['icon_path'])) ?>" alt="" style="height:24px;border-radius:3px">
-                        <div class="form-check ms-2">
-                          <input class="form-check-input" type="checkbox" name="delete_icon" value="1" id="di<?= (int)$tile['id'] ?>">
-                          <label class="form-check-label" for="di<?= (int)$tile['id'] ?>">Icon-Bild entfernen</label>
-                        </div>
+                        <button type="submit" name="delete_icon" value="1" class="btn btn-sm btn-outline-danger ms-2">
+                          Icon löschen
+                        </button>
                       <?php endif; ?>
                       <input type="file" name="icon_file" class="form-control" accept="image/*">
                     </div>
@@ -436,10 +453,9 @@
                   <div class="d-flex align-items-center gap-2">
                     <?php if (!empty($tile['bg_path'])): ?>
                       <img src="<?= esc(base_url($tile['bg_path'])) ?>" alt="" style="height:32px;border-radius:3px">
-                      <div class="form-check ms-2">
-                        <input class="form-check-input" type="checkbox" name="delete_bg" value="1" id="db<?= (int)$tile['id'] ?>">
-                        <label class="form-check-label" for="db<?= (int)$tile['id'] ?>">Hintergrund entfernen</label>
-                      </div>
+                      <button type="submit" name="delete_bg" value="1" class="btn btn-sm btn-outline-danger ms-2">
+                        Hintergrund löschen
+                      </button>
                     <?php endif; ?>
                     <input type="file" name="bg_file" class="form-control" accept="image/*">
                   </div>

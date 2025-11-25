@@ -295,6 +295,26 @@
     });
   }
 
+    function startTime() {
+        try {
+            var clockEl = document.getElementById('clock');
+            if (!clockEl) return; // Nur auf Seiten mit Uhr ausführen
+            const today = new Date();
+            let h = today.getHours();
+            let m = today.getMinutes();
+            let s = today.getSeconds();
+            m = checkTime(m);
+            s = checkTime(s);
+            clockEl.textContent = h + ":" + m + ":" + s;
+            setTimeout(startTime, 1000);
+        } catch (_) { /* noop */ }
+    }
+
+    function checkTime(i) {
+        if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+        return i;
+    }
+
   // --- Init ---------------------------------------------------------------
   function init(){
     runPing();
@@ -304,7 +324,19 @@
     initSortableTiles();
     initAddTileModalSubmitBinding();
     initDeleteTiles();
+    // Uhr nur initialisieren, wenn ein Clock-Element existiert
+    if (document.getElementById('clock')) {
+      startTime();
+    }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+
+
 })();
+
+
+
+
+
+
