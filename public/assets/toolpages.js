@@ -10,6 +10,11 @@
 
   // Endpoints from head meta
   var PING_ENDPOINT = getMeta('tp:ping') || '/ping';
+  var PING_ENABLED = (function(){
+    var val = getMeta('tp:ping-enabled');
+    if (val === null || val === undefined || val === '') return true; // default on
+    return val !== '0';
+  })();
   var REORDER_ENDPOINT = getMeta('tp:reorder') || '/dashboard/reorder';
 
   // --- BasePath helper (for reverse proxy subpaths) -----------------------
@@ -48,6 +53,7 @@
   }
 
     async function runPing() {
+        if (!PING_ENABLED) return; // disabled via user setting / meta flag
         const nodes = [...document.querySelectorAll('[data-ping-url]')];
 
         const limit = 5;

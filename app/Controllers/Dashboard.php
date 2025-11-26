@@ -145,6 +145,7 @@ class Dashboard extends BaseController
             'tileUserMap' => $tileUserMap,
             'tileGroupMap' => $tileGroupMap,
             'hiddenTiles' => $hiddenTiles,
+            'pingEnabled' => (int) ($settings['ping_enabled'] ?? 1),
         ]);
     }
 
@@ -159,10 +160,12 @@ class Dashboard extends BaseController
 
         $settings = new UserSettingModel();
         $existing = $settings->find($userId);
+        $pingEnabled = (string) ($this->request->getPost('ping_enabled') ?? '1');
+        $pingVal = ($pingEnabled === '0') ? 0 : 1;
         if ($existing) {
-            $settings->update($userId, ['columns' => $columns]);
+            $settings->update($userId, ['columns' => $columns, 'ping_enabled' => $pingVal]);
         } else {
-            $settings->insert(['user_id' => $userId, 'columns' => $columns]);
+            $settings->insert(['user_id' => $userId, 'columns' => $columns, 'ping_enabled' => $pingVal]);
         }
         return redirect()->to('/dashboard')->with('success', 'Layout gespeichert');
     }
@@ -221,6 +224,16 @@ class Dashboard extends BaseController
             'text'     => trim((string) $this->request->getPost('text')) ?: null,
             'category' => trim((string) $this->request->getPost('category')) ?: null,
         ];
+
+        // Per-Tile Ping: map POST ping_mode (inherit|on|off) to ping_enabled (NULL|1|0)
+        $pingMode = (string) ($this->request->getPost('ping_mode') ?? 'inherit');
+        if ($pingMode === 'on') {
+            $data['ping_enabled'] = 1;
+        } elseif ($pingMode === 'off') {
+            $data['ping_enabled'] = 0;
+        } else {
+            $data['ping_enabled'] = null; // inherit from user setting
+        }
 
         // Plugin-spezifische Felder übernehmen
         if ($data['type'] === 'plugin') {
@@ -323,13 +336,23 @@ class Dashboard extends BaseController
         $data = [
             // include user_id to satisfy model validation rules on update
             'user_id'  => (int) ($tile['user_id'] ?? $userId),
-            'type'     => in_array($type, ['link','iframe','file'], true) ? $type : $tile['type'],
+            'type'     => in_array($type, ['link','iframe','file','plugin'], true) ? $type : $tile['type'],
             'title'    => trim((string) $this->request->getPost('title')) ?: $tile['title'],
             'url'      => $url,
             'icon'     => trim((string) $this->request->getPost('icon')) ?: $tile['icon'],
             'text'     => $newText,
             'category' => trim((string) $this->request->getPost('category')) ?: $tile['category'],
         ];
+
+        // Per-Tile Ping update: ping_mode (inherit|on|off)
+        $pingMode = (string) ($this->request->getPost('ping_mode') ?? 'inherit');
+        if ($pingMode === 'on') {
+            $data['ping_enabled'] = 1;
+        } elseif ($pingMode === 'off') {
+            $data['ping_enabled'] = 0;
+        } else {
+            $data['ping_enabled'] = null; // inherit
+        }
 
         // Do not let users set arbitrary positions via the edit form; keep current backend-managed position
         $data['position'] = (int) ($tile['position'] ?? 0);

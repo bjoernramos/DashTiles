@@ -13,7 +13,7 @@ class TileModel extends Model
     protected $useTimestamps = true;
 
     protected $allowedFields = [
-        'user_id', 'is_global', 'type', 'title', 'url', 'icon', 'icon_path', 'bg_path', 'bg_color', 'text', 'category', 'position',
+        'user_id', 'is_global', 'type', 'title', 'url', 'icon', 'icon_path', 'bg_path', 'bg_color', 'text', 'category', 'position', 'ping_enabled',
         // Plugin-spezifisch
         'plugin_type', 'plugin_config',
     ];
@@ -33,6 +33,7 @@ class TileModel extends Model
         'text'     => 'permit_empty|max_length[255]',
         'category' => 'permit_empty|max_length[190]',
         'position' => 'permit_empty|integer',
+        'ping_enabled' => 'permit_empty|in_list[0,1]'
     ];
 
     public function forUser(int $userId)

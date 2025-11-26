@@ -96,9 +96,16 @@
                     } elseif (!empty($tile['bg_color'])) {
                       $bgStyle = 'background:' . esc($tile['bg_color']) . ';';
                     }
+                    // Per-Tile Ping wirksam berechnen: user setting muss aktiv sein UND Kachel darf Ping nicht explizit deaktivieren
+                    $tilePingVal = isset($tile['ping_enabled']) ? $tile['ping_enabled'] : null; // null=inheritiert
+                    $userPingOn = (!isset($pingEnabled) || (int)$pingEnabled === 1);
+                    $tileAllowsPing = ($tilePingVal === null) ? true : ((int)$tilePingVal === 1);
+                    $effectivePing = $userPingOn && $tileAllowsPing;
                   ?>
-                  <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?>>
+                  <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" <?= ($effectivePing ? 'data-ping-url="' . esc($pingUrl) . '"' : '') ?> <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?>>
+                  <?php if ($effectivePing): ?>
                   <span class="tp-ping" aria-hidden="true"></span>
+                  <?php endif; ?>
                   <h4 class="h6 d-flex align-items-center gap-2 mb-2">
                     <?php if (!empty($tile['icon_path'])): ?>
                       <img src="<?= esc(base_url($tile['icon_path'])) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">

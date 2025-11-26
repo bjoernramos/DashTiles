@@ -3,10 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= esc(lang('App.pages.dashboard.title')) ?> • <?= esc(lang('App.brand')) ?></title>
+  <title><?= esc(lang('App.brand')) ?> • <?= esc(lang('App.pages.dashboard.title')) ?></title>
   <?= view('partials/bootstrap_head') ?>
+  <?php
+    // BASE_PATH für Reverse-Proxy: aus .env toolpages.basePath lesen, sonst '/'
+    $envBase = rtrim((string) (getenv('toolpages.basePath') ?: '/'), '/');
+    if ($envBase === '') { $envBase = '/'; }
+    // Genau einen abschließenden Slash erzeugen
+    $baseHref = rtrim($envBase, '/');
+    if ($baseHref === '') { $baseHref = '/'; }
+    $baseHref = rtrim($baseHref, '/') . '/';
+  ?>
+  <base href="<?= htmlspecialchars($baseHref, ENT_QUOTES) ?>">
 </head>
-<body>
+<body <?= session()->get('user_id') ? ('data-user-id="'.(int)session()->get('user_id').'"') : '' ?> >
   <?= view('partials/nav') ?>
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -301,6 +311,14 @@
                       <input name="category" class="form-control" placeholder="z.B. Dashboards">
                     </div>
                     <!-- position removed: assigned by backend automatically -->
+                    <div class="col-6">
+                      <label class="form-label">Ping für diese Kachel</label>
+                      <select name="ping_mode" class="form-select">
+                        <option value="inherit" selected>Vom Benutzer übernehmen</option>
+                        <option value="on">Ping aktivieren</option>
+                        <option value="off">Ping deaktivieren</option>
+                      </select>
+                    </div>
                   </div>
                   <div class="row g-2 mt-1">
                     <div class="col-12 col-md-6">
@@ -393,8 +411,17 @@
                   $bgStyle = 'background:' . esc($tile['bg_color']) . ';';
                 }
               ?>
-              <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?> data-tile-id="<?= (int)$tile['id'] ?>" draggable="true">
+              <?php
+                // Per-Tile Ping: wirksamer Zustand = Nutzerflag UND Kachel nicht explizit aus
+                $tilePingVal = isset($tile['ping_enabled']) ? $tile['ping_enabled'] : null; // null=inheritiert
+                $userPingOn = (!isset($pingEnabled) || (int)$pingEnabled === 1);
+                $tileAllowsPing = ($tilePingVal === null) ? true : ((int)$tilePingVal === 1);
+                $effectivePing = $userPingOn && $tileAllowsPing;
+              ?>
+              <div class="border rounded p-1 h-100 tp-tile" style="<?= $bgStyle ?>" <?= ($effectivePing ? 'data-ping-url="' . esc($pingUrl) . '"' : '') ?> <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?> data-tile-id="<?= (int)$tile['id'] ?>" draggable="true">
+                <?php if ($effectivePing): ?>
                 <span class="tp-ping" aria-hidden="true"></span>
+                <?php endif; ?>
                 <div class="d-flex justify-content-between align-items-center mb-2">
 
                   <h4 class="h6 d-flex align-items-center gap-2 m-0">
@@ -503,6 +530,24 @@
                   <div class="col-12 col-md-6">
                     <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.category')) ?></label>
                     <input name="category" class="form-control" value="<?= esc($tile['category'] ?? '') ?>">
+                  </div>
+                </div>
+                <div class="row g-2 mt-1">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Ping für diese Kachel</label>
+                    <?php
+                      $pingMode = 'inherit';
+                      if (array_key_exists('ping_enabled', $tile)) {
+                          if ($tile['ping_enabled'] === null || $tile['ping_enabled'] === '') { $pingMode = 'inherit'; }
+                          elseif ((int)$tile['ping_enabled'] === 1) { $pingMode = 'on'; }
+                          else { $pingMode = 'off'; }
+                      }
+                    ?>
+                    <select name="ping_mode" class="form-select">
+                      <option value="inherit" <?= $pingMode==='inherit'?'selected':''; ?>>Vom Benutzer übernehmen</option>
+                      <option value="on" <?= $pingMode==='on'?'selected':''; ?>>Ping aktivieren</option>
+                      <option value="off" <?= $pingMode==='off'?'selected':''; ?>>Ping deaktivieren</option>
+                    </select>
                   </div>
                 </div>
                 <?php if ($tile['type'] === 'file'): ?>
