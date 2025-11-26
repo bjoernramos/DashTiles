@@ -43,7 +43,7 @@
           <?php $catId = 'cat_'.md5((string)$category); ?>
           <div class="card mb-3 category" data-cat-wrapper="<?= esc($catId) ?>">
             <div class="card-body">
-              <div class="d-flex align-items-center justify-content-between mb-2">
+              <div class="d-flex align-items-center justify-content-between mb-2 category-title">
                 <h3 class="h5 m-0"><?= esc($category) ?></h3>
                 <button class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" type="button" data-bs-toggle="collapse" data-bs-target="#<?= esc($catId) ?>" aria-expanded="true" aria-controls="<?= esc($catId) ?>" title="<?= esc(lang('App.pages.home.collapse_toggle')) ?>">
                   <span class="material-symbols-outlined" aria-hidden="true" data-cat-icon="<?= esc($catId) ?>">expand_less</span>

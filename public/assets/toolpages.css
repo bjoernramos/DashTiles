@@ -17,6 +17,11 @@
     border: none !important;
 }
 
+.category-title{
+    border-bottom: 1px solid var(--bs-border-color)!important;
+    padding-bottom: 0.2em;
+}
+
 :root {
     --bs-border-radius: 0.2rem; /* dein Wert */
 }

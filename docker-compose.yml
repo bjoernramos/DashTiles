@@ -1,7 +1,7 @@
 services:
   app:
     build: .
-    container_name: toolpages-app
+    container_name: DashTiles-app
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
@@ -12,7 +12,7 @@ services:
 
   nginx:
     image: nginx:1.27-alpine
-    container_name: toolpages-nginx
+    container_name: DashTiles-nginx
     ports:
       - "8080:80"
     volumes:
@@ -24,13 +24,13 @@ services:
 
   mariadb:
     image: mariadb:11
-    container_name: toolpages-db
+    container_name: DashTiles-db
     ports:
       - "3306:3306"
     environment:
-      - MARIADB_DATABASE=toolpages
-      - MARIADB_USER=toolpages
-      - MARIADB_PASSWORD=toolpages
+      - MARIADB_DATABASE=DashTiles
+      - MARIADB_USER=DashTiles
+      - MARIADB_PASSWORD=DashTiles
       - MARIADB_ROOT_PASSWORD=root
     volumes:
       - dbdata:/var/lib/mysql
