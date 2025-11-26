@@ -43,12 +43,12 @@
 
     <?php if (defined('ENVIRONMENT') && ENVIRONMENT === 'development'): ?>
       <!-- Plugin-Demo (nur in Development-Umgebung sichtbar) -->
-      <div class="card mb-3">
-        <div class="card-body">
-          <h2 class="h6 text-muted mb-2">Plugin-Demo</h2>
-          <div id="tp-plugin-demo" data-tile-type="demo.hello" class="border rounded p-3" style="min-height:120px"></div>
-        </div>
-      </div>
+<!--      <div class="card mb-3">-->
+<!--        <div class="card-body">-->
+<!--          <h2 class="h6 text-muted mb-2">Plugin-Demo</h2>-->
+<!--          <div id="tp-plugin-demo" data-tile-type="demo.hello" class="border rounded p-3" style="min-height:120px"></div>-->
+<!--        </div>-->
+<!--      </div>-->
     <?php endif; ?>
 
     <?php if (session()->get('user_id')): ?>
@@ -132,6 +132,13 @@
                     <?php if (!empty($tile['text'])): ?>
                       <p class="mb-0 text-muted small"><?= esc($tile['text']) ?></p>
                     <?php endif; ?>
+                  <?php elseif ($tile['type'] === 'plugin'): ?>
+                    <?php
+                      $ptype = (string)($tile['plugin_type'] ?? '');
+                      $pcfg  = (string)($tile['plugin_config'] ?? '{}');
+                      $pcfgOut = $pcfg !== '' ? $pcfg : '{}';
+                    ?>
+                    <div class="tp-plugin" data-plugin-type="<?= esc($ptype) ?>" data-plugin-cfg='<?= esc($pcfgOut) ?>' style="min-height:80px"></div>
                   <?php endif; ?>
                   </div>
                 </div>

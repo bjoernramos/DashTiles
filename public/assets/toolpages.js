@@ -233,7 +233,11 @@
       try {
         var url = (typeof input === 'string') ? input : (input && input.url) || '';
         if (url.startsWith('/')) {
-          url = BASE_PATH + url;
+          // Prefix only when BASE_PATH is a real subpath (not '/' or empty),
+          // otherwise we would generate protocol-relative URLs like //api/...
+          if (BASE_PATH && BASE_PATH !== '/') {
+            url = BASE_PATH + url;
+          }
         }
         return fetch(url, Object.assign({ credentials: 'same-origin' }, init||{}));
       } catch(e) { return Promise.reject(e); }
@@ -247,7 +251,11 @@
     };
   }
 
-  function getPluginsEndpoint(){ return (BASE_PATH || '') + '/api/plugins'; }
+  function getPluginsEndpoint(){
+    // Avoid protocol-relative URL when BASE_PATH is '/'
+    var prefix = (BASE_PATH && BASE_PATH !== '/') ? BASE_PATH : '';
+    return prefix + '/api/plugins';
+  }
 
   function registrar(){
     return {
@@ -264,7 +272,7 @@
     var url = hashIdx >= 0 ? entry.slice(0, hashIdx) : entry;
     var exportName = hashIdx >= 0 ? entry.slice(hashIdx + 1) : '';
     // If the URL is absolute-path based (starts with '/'), prefix BASE_PATH for reverse-proxy deployments
-    if (url && url.charAt(0) === '/' && BASE_PATH) {
+    if (url && url.charAt(0) === '/' && BASE_PATH && BASE_PATH !== '/') {
       url = BASE_PATH + url;
     }
     var fullUrl = url + (version ? ('?v=' + encodeURIComponent(version)) : '');

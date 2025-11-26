@@ -53,3 +53,5 @@ $routes->get('file/(\d+)', 'Dashboard::file/$1');
 $routes->get('plugins/(:segment)/plugin.json', 'PluginsController::manifest/$1');
 $routes->get('plugins/(:segment)/web/(.+)', 'PluginsController::web/$1/$2');
 $routes->get('api/plugins', 'PluginsController::index');
+// Plugin-scoped proxy endpoints (Phase 5 - minimal for rss_reader)
+$routes->post('api/plugins/rss_reader/fetch', 'PluginsController::proxyRss');
