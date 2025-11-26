@@ -111,6 +111,9 @@
               <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-iframe" data-bs-toggle="tab" data-bs-target="#pane-iframe" type="button" role="tab"><?= esc(lang('App.pages.dashboard.tabs.iframe')) ?></button>
               </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-plugin" data-bs-toggle="tab" data-bs-target="#pane-plugin" type="button" role="tab">Plugins</button>
+              </li>
             </ul>
             <div class="tab-content mt-3">
               <div class="tab-pane fade show active" id="pane-link" role="tabpanel" aria-labelledby="tab-link">
@@ -189,6 +192,30 @@
                     </div>
                   </div>
                 </form>
+              </div>
+              <div class="tab-pane fade" id="pane-plugin" role="tabpanel" aria-labelledby="tab-plugin">
+                <form method="post" action="/dashboard/tile" id="form-add-plugin" enctype="multipart/form-data">
+                  <input type="hidden" name="type" value="plugin">
+                  <div class="mb-2">
+                    <label class="form-label">Titel</label>
+                    <input name="title" class="form-control" placeholder="z. B. Demo‑Tile" required>
+                  </div>
+                  <div class="row g-2 mb-2">
+                    <div class="col-6">
+                      <label class="form-label">Kategorie</label>
+                      <input name="category" class="form-control" placeholder="z. B. Monitoring">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label">Plugin‑Tile‑Typ</label>
+                      <select id="pluginTypeSelect" name="plugin_type" class="form-select" required>
+                        <option value="" selected disabled>Bitte wählen…</option>
+                      </select>
+                    </div>
+                  </div>
+                  <input type="hidden" id="pluginConfigField" name="plugin_config" value="{}">
+                  <div id="pluginConfigUI" class="mt-2"></div>
+                </form>
+                <div class="form-text">Hinweis: Konfigurationsformulare folgen in einem späteren Schritt. Aktuell werden Standardwerte des Plugins verwendet.</div>
               </div>
               <div class="tab-pane fade" id="pane-file" role="tabpanel" aria-labelledby="tab-file">
                 <form method="post" action="/dashboard/tile" enctype="multipart/form-data" id="form-add-file">
@@ -443,6 +470,13 @@
                   <?php if (!empty($tile['text'])): ?>
                     <p class="mb-0 text-muted small"><?= esc($tile['text']) ?></p>
                   <?php endif; ?>
+                <?php elseif ($tile['type'] === 'plugin'): ?>
+                  <?php
+                    $ptype = (string)($tile['plugin_type'] ?? '');
+                    $pcfg  = (string)($tile['plugin_config'] ?? '{}');
+                    $pcfgOut = $pcfg !== '' ? $pcfg : '{}';
+                  ?>
+                  <div class="tp-plugin" data-plugin-type="<?= esc($ptype) ?>" data-plugin-cfg='<?= esc($pcfgOut) ?>' style="min-height:80px"></div>
                 <?php endif; ?>
                 <?php if ($canManage): ?>
                 <!-- Edit Tile Modal (moved outside of .tp-tile to avoid event/z-index conflicts) -->
@@ -451,7 +485,7 @@
               </div>
               <?php if ($canManage): ?>
               <!-- Edit Tile Modal -->
-              <div class="modal fade" id="editTileModal<?= (int)$tile['id'] ?>" tabindex="-1" aria-hidden="true">
+              <div class="modal fade" id="editTileModal<?= (int)$tile['id'] ?>" tabindex="-1" aria-hidden="true" <?= ($tile['type'] === 'plugin') ? ('data-plugin-edit="1" data-plugin-type="' . esc((string)($tile['plugin_type'] ?? ''), 'attr') . '" data-plugin-cfg=' . esc((string)($tile['plugin_config'] ?? '{}'), 'attr') . '') : '' ?>>
                 <div class="modal-dialog modal-lg modal-dialog-scrollable">
                   <div class="modal-content">
                     <div class="modal-header">
@@ -471,12 +505,16 @@
                     <input name="category" class="form-control" value="<?= esc($tile['category'] ?? '') ?>">
                   </div>
                 </div>
-                <?php if ($tile['type'] !== 'file'): ?>
-                  <label class="form-label mt-2"><?= esc(lang('App.pages.dashboard.labels.url')) ?></label>
-                  <input name="url" class="form-control" value="<?= esc($tile['url'] ?? '') ?>">
-                <?php else: ?>
+                <?php if ($tile['type'] === 'file'): ?>
                   <label class="form-label mt-2"><?= esc(lang('App.pages.dashboard.labels.new_file')) ?></label>
                   <input type="file" name="file" class="form-control">
+                <?php elseif ($tile['type'] === 'plugin'): ?>
+                  <input type="hidden" name="plugin_type" value="<?= esc((string)($tile['plugin_type'] ?? ''), 'attr') ?>">
+                  <input type="hidden" name="plugin_config" value='<?= esc((string)($tile['plugin_config'] ?? '{}'), 'attr') ?>'>
+                  <div class="mt-2" data-plugin-config-ui></div>
+                <?php else: ?>
+                  <label class="form-label mt-2"><?= esc(lang('App.pages.dashboard.labels.url')) ?></label>
+                  <input name="url" class="form-control" value="<?= esc($tile['url'] ?? '') ?>">
                 <?php endif; ?>
                 <div class="row g-2 mt-1">
                   <div class="col-12 col-md-6">

@@ -51,5 +51,5 @@ $routes->get('file/(\d+)', 'Dashboard::file/$1');
 
 // Plugins: static serving and listing
 $routes->get('plugins/(:segment)/plugin.json', 'PluginsController::manifest/$1');
-$routes->get('plugins/(:segment)/web/(.*)', 'PluginsController::web/$1/$2');
+$routes->get('plugins/(:segment)/web/(.+)', 'PluginsController::web/$1/$2');
 $routes->get('api/plugins', 'PluginsController::index');

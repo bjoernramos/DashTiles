@@ -5,7 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= esc(lang('App.brand')) ?> • <?= esc(lang('App.pages.home.title')) ?></title>
   <?= view('partials/bootstrap_head') ?>
-  <base href="<?= htmlspecialchars($basePath ?? '/toolpages', ENT_QUOTES) ?>/">
+  <?php
+    // BASE_PATH: Wenn Controller/Config keinen Wert liefert, auf Root "/" zurückfallen.
+    // Ein festes "/toolpages" als Default hat in der Entwicklung zu 404 bei Plugin-Imports geführt.
+    $effectiveBase = isset($basePath) && $basePath !== '' ? $basePath : '/';
+  // Saubere Base-URL erzeugen (genau ein abschließender Slash)
+  $baseHref = rtrim($effectiveBase, '/');
+  if ($baseHref === '') { $baseHref = '/'; }
+  $baseHref = rtrim($baseHref, '/') . '/';
+  ?>
+  <base href="<?= htmlspecialchars($baseHref, ENT_QUOTES) ?>">
 </head>
 <body <?= session()->get('user_id') ? ('data-user-id="'.(int)session()->get('user_id').'"') : '' ?> >
   <?= view('partials/nav') ?>
@@ -31,6 +40,16 @@
         <?php endif; ?>
       </div>
     </div>
+
+    <?php if (defined('ENVIRONMENT') && ENVIRONMENT === 'development'): ?>
+      <!-- Plugin-Demo (nur in Development-Umgebung sichtbar) -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <h2 class="h6 text-muted mb-2">Plugin-Demo</h2>
+          <div id="tp-plugin-demo" data-tile-type="demo.hello" class="border rounded p-3" style="min-height:120px"></div>
+        </div>
+      </div>
+    <?php endif; ?>
 
     <?php if (session()->get('user_id')): ?>
       <?php 
