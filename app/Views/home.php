@@ -106,7 +106,7 @@
                   <?php if ($effectivePing): ?>
                   <span class="tp-ping" aria-hidden="true"></span>
                   <?php endif; ?>
-                  <h4 class="h6 d-flex align-items-center gap-2 mb-2">
+                  <h4 class="h6 d-flex align-items-center gap-2 mb-2  tile-head">
                     <?php if (!empty($tile['icon_path'])): ?>
                       <img src="<?= esc(base_url($tile['icon_path'])) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
                     <?php elseif (!empty($tile['icon'])): ?>

@@ -2,11 +2,14 @@
 // Renders a scrollable list of RSS/Atom items from a configurable feed URL.
 
 class RssReaderTile {
-  #container; #cfg; #ctx; #abort;
+  #container; #cfg; #ctx; #abort; #observer; #timeoutId;
 
-  async render(container, cfg = {}, ctx) {
+  // Non-blocking render: set up UI and kick off fetching in background when visible
+  render(container, cfg = {}, ctx) {
     this.#container = container; this.#cfg = cfg; this.#ctx = ctx;
     this.#abort?.abort(); this.#abort = new AbortController();
+    if (this.#observer) { try { this.#observer.disconnect(); } catch(_) {} this.#observer = null; }
+    if (this.#timeoutId) { clearTimeout(this.#timeoutId); this.#timeoutId = null; }
 
     container.innerHTML = `
       <div class="rss-root" style="display:flex;flex-direction:column;height:100%;min-height:80px;">
@@ -25,18 +28,61 @@ class RssReaderTile {
       return;
     }
 
+    // Lightweight skeleton while loading
+    listEl.innerHTML = this.#skeletonHTML(Math.min(maxItems, 5));
+
+    const startLoading = () => {
+      // Double-check in case of re-renders
+      if (!this.#container || this.#abort.signal.aborted) return;
+      this.#doFetchAndRender({ listEl, feedUrl, maxItems, showImages, cfg, ctx }).catch(() => {/* UI handled inside */});
+    };
+
+    // Defer network work until tile is visible (performance for many tiles)
+    try {
+      if ('IntersectionObserver' in window) {
+        const obs = new IntersectionObserver((entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              try { obs.disconnect(); } catch(_) {}
+              startLoading();
+            }
+          });
+        }, { root: null, rootMargin: '100px', threshold: 0 });
+        obs.observe(container);
+        this.#observer = obs;
+        // Fallback: if never intersected (e.g., tiny viewport), start after short delay
+        this.#timeoutId = setTimeout(() => { try { obs.disconnect(); } catch(_) {} startLoading(); }, 1200);
+      } else {
+        // No IO support → start immediately in a microtask
+        Promise.resolve().then(startLoading);
+      }
+    } catch(_) { Promise.resolve().then(startLoading); }
+  }
+
+  update(cfg) { this.render(this.#container, cfg, this.#ctx); }
+  dispose() {
+    try { this.#abort?.abort(); } catch(_) {}
+    if (this.#observer) { try { this.#observer.disconnect(); } catch(_) {} this.#observer = null; }
+    if (this.#timeoutId) { clearTimeout(this.#timeoutId); this.#timeoutId = null; }
+  }
+
+  async #doFetchAndRender({ listEl, feedUrl, maxItems, showImages, cfg, ctx }){
     try {
       const useProxy = (cfg.useProxy !== false); // default true
       let xmlText = '';
+
+      // Implement a request timeout to avoid long hangs
+      const controller = this.#abort;
+      const timeoutMs = Math.max(3000, Math.min(20000, Number(cfg.timeoutMs || 8000)));
+      const timeout = setTimeout(() => { try { controller.abort(); } catch(_) {} }, timeoutMs);
+
       if (useProxy && !feedUrl.startsWith('/') && /^https?:\/\//i.test(feedUrl)) {
-        // Server-side fetch via plugin proxy to avoid CORS and keep CSP strict
-        // Build URL safely: if basePath is '/' or empty, don't prefix to avoid "//api/..."
         const bp = (!ctx || !ctx.basePath || ctx.basePath === '/') ? '' : ctx.basePath;
         const proxyUrl = bp + '/api/plugins/rss_reader/fetch';
         const pres = await fetch(proxyUrl, {
           method: 'POST',
           credentials: 'include',
-          signal: this.#abort.signal,
+          signal: controller.signal,
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
           body: JSON.stringify({ url: feedUrl })
         });
@@ -47,18 +93,18 @@ class RssReaderTile {
         }
         xmlText = String(pdata.xml);
       } else {
-        // Direct client fetch (works for same-origin proxied feeds or public CORS-enabled feeds)
         const res = await fetch(feedUrl, {
-          signal: this.#abort.signal,
+          signal: controller.signal,
           credentials: 'include',
           headers: { 'Accept': 'application/rss+xml, application/atom+xml, text/xml;q=0.9, */*;q=0.8' }
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         xmlText = await res.text();
       }
+      clearTimeout(timeout);
 
       const { title, items } = this.#parseFeed(xmlText);
-      try { if (title) container.querySelector('.rss-header').textContent = title; } catch(_){}
+      try { if (title) this.#container.querySelector('.rss-header').textContent = title; } catch(_){ }
       const limited = items.slice(0, maxItems);
       if (!limited.length) {
         listEl.innerHTML = `<div class="text-muted">Keine Einträge gefunden.</div>`;
@@ -81,17 +127,14 @@ class RssReaderTile {
         });
       });
     } catch (e) {
-      const msg = this.#escape(e?.message || String(e));
+      const msg = this.#escape(e?.name === 'AbortError' ? 'Zeitüberschreitung' : (e?.message || String(e)));
       const hint = (cfg.useProxy === false) ? '<div class="text-muted small">Tipp: Aktiviere "Server‑Proxy verwenden" in der Konfiguration, um CORS‑Probleme zu vermeiden.</div>' : '';
       listEl.innerHTML = `<div class="text-danger">Fehler beim Laden: ${msg}</div>${hint}`;
     }
   }
 
-  update(cfg) { this.render(this.#container, cfg, this.#ctx); }
-  dispose() { try { this.#abort?.abort(); } catch(_) {} }
-
   #itemHTML(it, showImages, cfg){
-    const img = showImages && it.image ? `<img src="${this.#escape(it.image)}" alt="" style="width:42px;height:42px;object-fit:cover;border-radius:6px;flex:0 0 auto">` : '';
+    const img = showImages && it.image ? `<img src="${this.#escape(it.image)}" alt="" loading="lazy" style="width:42px;height:42px;object-fit:cover;border-radius:6px;flex:0 0 auto">` : '';
     const fdate = it.pubDate ? this.#formatDateStr(it.pubDate) : '';
     const date = fdate ? `<div class="text-muted small">${this.#escape(fdate)}</div>` : '';
     const showDesc = (cfg.showDescription !== false);

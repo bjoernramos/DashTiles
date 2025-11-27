@@ -616,6 +616,8 @@
       tryRenderDemo();
       // Render any plugin placeholders present on the page (dashboard/home)
       renderAllPluginPlaceholders();
+      // Initialize plugin edit modals (ensures config UI appears when editing plugin tiles)
+      try { initEditPluginModals(); } catch(_) {}
     });
 
     // Initialize Plugins tab when it is shown
