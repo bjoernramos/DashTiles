@@ -3,10 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= esc(lang('App.pages.dashboard.title')) ?> • <?= esc(lang('App.brand')) ?></title>
+  <title><?= esc(lang('App.brand')) ?> • <?= esc(lang('App.pages.dashboard.title')) ?></title>
   <?= view('partials/bootstrap_head') ?>
+  <?php
+    // BASE_PATH für Reverse-Proxy: aus .env toolpages.basePath lesen, sonst '/'
+    $envBase = rtrim((string) (getenv('toolpages.basePath') ?: '/'), '/');
+    if ($envBase === '') { $envBase = '/'; }
+    // Genau einen abschließenden Slash erzeugen
+    $baseHref = rtrim($envBase, '/');
+    if ($baseHref === '') { $baseHref = '/'; }
+    $baseHref = rtrim($baseHref, '/') . '/';
+  ?>
+  <base href="<?= htmlspecialchars($baseHref, ENT_QUOTES) ?>">
 </head>
-<body>
+<body <?= session()->get('user_id') ? ('data-user-id="'.(int)session()->get('user_id').'"') : '' ?> >
   <?= view('partials/nav') ?>
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -111,6 +121,9 @@
               <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-iframe" data-bs-toggle="tab" data-bs-target="#pane-iframe" type="button" role="tab"><?= esc(lang('App.pages.dashboard.tabs.iframe')) ?></button>
               </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-plugin" data-bs-toggle="tab" data-bs-target="#pane-plugin" type="button" role="tab">Plugins</button>
+              </li>
             </ul>
             <div class="tab-content mt-3">
               <div class="tab-pane fade show active" id="pane-link" role="tabpanel" aria-labelledby="tab-link">
@@ -181,6 +194,99 @@
                     </div>
                     <div class="col-12 col-lg-6">
                       <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.groups')) ?></label>
+                      <select class="form-select" name="visible_group_ids[]" multiple size="8">
+                        <?php foreach (($groupsList ?? []) as $g): ?>
+                          <option value="<?= (int)$g['id'] ?>"><?= esc($g['name']) ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div class="tab-pane fade" id="pane-plugin" role="tabpanel" aria-labelledby="tab-plugin">
+                <form method="post" action="/dashboard/tile" id="form-add-plugin" enctype="multipart/form-data">
+                  <input type="hidden" name="type" value="plugin">
+                  <div class="mb-2">
+                    <label class="form-label">Titel</label>
+                    <input name="title" class="form-control" placeholder="z. B. RSS Reader" required>
+                  </div>
+                  <div class="row g-2 mb-2">
+                    <div class="col-6">
+                      <label class="form-label">Kategorie</label>
+                      <input name="category" class="form-control" placeholder="z. B. Monitoring">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label">Plugin‑Tile‑Typ</label>
+                      <select id="pluginTypeSelect" name="plugin_type" class="form-select" required>
+                        <option value="" selected disabled>Bitte wählen…</option>
+                      </select>
+                    </div>
+                  </div>
+                  <!-- Plugin-spezifische Konfiguration (Schema oder Custom‑Form) -->
+                  <input type="hidden" id="pluginConfigField" name="plugin_config" value="{}">
+                  <div id="pluginConfigUI" class="mt-2"></div>
+
+                  <!-- Allgemeine Kachel-Felder wie beim Bearbeiten -->
+                  <div class="row g-2 mt-3">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Icon (CSS‑Klasse oder Bild‑URL)</label>
+                      <input name="icon" class="form-control" placeholder="z. B. ms:rss_feed oder /assets/rss.svg">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Text</label>
+                      <input name="text" class="form-control" placeholder="optional">
+                    </div>
+                  </div>
+                  <div class="row g-2 mt-1">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Icon‑Bild (optional)</label>
+                      <input type="file" name="icon_file" class="form-control" accept="image/*">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Hintergrundbild (optional)</label>
+                      <input type="file" name="bg_file" class="form-control" accept="image/*">
+                    </div>
+                  </div>
+                  <div class="row g-2 mt-1">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Hintergrundfarbe (optional)</label>
+                      <input type="hidden" name="bg_color_picker_used" value="0">
+                      <input type="color" name="bg_color_picker" class="form-control form-control-color" value="#ffffff" oninput="this.form.elements['bg_color_picker_used'].value='1'">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Farbverlauf/Manuell (CSS)</label>
+                      <input type="text" name="bg_color" class="form-control" placeholder="#112233 oder linear-gradient(45deg, #123, #456)" oninput="this.form.elements['bg_color_picker_used'].value=this.value?'0':this.form.elements['bg_color_picker_used'].value">
+                      <div class="form-text">Wenn beide gesetzt sind, wird der manuelle Wert verwendet.</div>
+                    </div>
+                  </div>
+                  <div class="row g-2 mt-1">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Ping für diese Kachel</label>
+                      <select name="ping_mode" class="form-select">
+                        <option value="inherit" selected>Vom Benutzer übernehmen</option>
+                        <option value="on">Ping aktivieren</option>
+                        <option value="off">Ping deaktivieren</option>
+                      </select>
+                    </div>
+                  </div>
+                  <?php if (($role) === 'admin'): ?>
+                  <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" name="is_global" value="1" id="pg1">
+                    <label class="form-check-label" for="pg1">Global (für alle Nutzer anzeigen)</label>
+                  </div>
+                  <?php endif; ?>
+                  <div class="row g-2 mt-1">
+                    <div class="col-12 col-lg-6">
+                      <label class="form-label">Benutzer, die diese Kachel sehen dürfen</label>
+                      <select class="form-select" name="visible_user_ids[]" multiple size="8">
+                        <?php foreach (($usersList ?? []) as $u): ?>
+                          <?php $udisp = trim(($u['display_name'] ?? '') ?: ($u['username'] ?? (string)$u['id'])); ?>
+                          <option value="<?= (int)$u['id'] ?>"><?= esc($udisp) ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    </div>
+                    <div class="col-12 col-lg-6">
+                      <label class="form-label">Gruppen, die diese Kachel sehen dürfen</label>
                       <select class="form-select" name="visible_group_ids[]" multiple size="8">
                         <?php foreach (($groupsList ?? []) as $g): ?>
                           <option value="<?= (int)$g['id'] ?>"><?= esc($g['name']) ?></option>
@@ -274,6 +380,14 @@
                       <input name="category" class="form-control" placeholder="z.B. Dashboards">
                     </div>
                     <!-- position removed: assigned by backend automatically -->
+                    <div class="col-6">
+                      <label class="form-label">Ping für diese Kachel</label>
+                      <select name="ping_mode" class="form-select">
+                        <option value="inherit" selected>Vom Benutzer übernehmen</option>
+                        <option value="on">Ping aktivieren</option>
+                        <option value="off">Ping deaktivieren</option>
+                      </select>
+                    </div>
                   </div>
                   <div class="row g-2 mt-1">
                     <div class="col-12 col-md-6">
@@ -366,11 +480,20 @@
                   $bgStyle = 'background:' . esc($tile['bg_color']) . ';';
                 }
               ?>
-              <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?> data-tile-id="<?= (int)$tile['id'] ?>" draggable="true">
+              <?php
+                // Per-Tile Ping: wirksamer Zustand = Nutzerflag UND Kachel nicht explizit aus
+                $tilePingVal = isset($tile['ping_enabled']) ? $tile['ping_enabled'] : null; // null=inheritiert
+                $userPingOn = (!isset($pingEnabled) || (int)$pingEnabled === 1);
+                $tileAllowsPing = ($tilePingVal === null) ? true : ((int)$tilePingVal === 1);
+                $effectivePing = $userPingOn && $tileAllowsPing;
+              ?>
+              <div class="border rounded p-1 h-100 tp-tile" style="<?= $bgStyle ?>" <?= ($effectivePing ? 'data-ping-url="' . esc($pingUrl) . '"' : '') ?> <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?> data-tile-id="<?= (int)$tile['id'] ?>" draggable="true">
+                <?php if ($effectivePing): ?>
                 <span class="tp-ping" aria-hidden="true"></span>
+                <?php endif; ?>
                 <div class="d-flex justify-content-between align-items-center mb-2">
 
-                  <h4 class="h6 d-flex align-items-center gap-2 m-0">
+                  <h4 class="h6 d-flex align-items-center gap-2 m-0 tile-head">
                     <?php if (!empty($tile['icon_path'])): ?>
                       <img src="<?= esc(base_url($tile['icon_path'])) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
                     <?php elseif (!empty($tile['icon'])): ?>
@@ -410,7 +533,7 @@
 
                     <?php if ($canManage): ?>
                       <button type="button" class="btn btn-sm text-secondary text-decoration-none border-0 bg-transparent p-1" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>">
-                          <span class="material-symbols-outlined">edit</span>
+                          <span class="material-symbols-outlined tile-edit-icon">edit</span>
                       </button>
                       <button type="button"
                               class="btn btn-sm text-danger text-decoration-none border-0 bg-transparent p-1"
@@ -418,14 +541,14 @@
                               data-tile-id="<?= (int)$tile['id'] ?>"
                               data-delete-url="<?= esc(site_url('dashboard/tile/' . (int)$tile['id'] . '/delete')) ?>"
                               data-confirm-text="<?= esc(lang('App.pages.dashboard.delete_tile_confirm')) ?>">
-                          <span class="material-symbols-outlined">delete</span>
+                          <span class="material-symbols-outlined tile-edit-icon">delete</span>
 
                       </button>
                     <?php endif; ?>
                     <?php if (!empty($tile['is_global']) && (int)$tile['is_global'] === 1): ?>
                       <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/hide" class="m-0 d-inline">
                         <button class="btn btn-sm text-warning text-decoration-none border-0 bg-transparent p-1" type="submit">
-                        <span class="material-symbols-outlined">
+                        <span class="material-symbols-outlined tile-edit-icon">
                             disabled_visible
                         </span>
                         </button>
@@ -443,6 +566,13 @@
                   <?php if (!empty($tile['text'])): ?>
                     <p class="mb-0 text-muted small"><?= esc($tile['text']) ?></p>
                   <?php endif; ?>
+                <?php elseif ($tile['type'] === 'plugin'): ?>
+                  <?php
+                    $ptype = (string)($tile['plugin_type'] ?? '');
+                    $pcfg  = (string)($tile['plugin_config'] ?? '{}');
+                    $pcfgOut = $pcfg !== '' ? $pcfg : '{}';
+                  ?>
+                  <div class="tp-plugin" data-plugin-type="<?= esc($ptype) ?>" data-plugin-cfg='<?= esc($pcfgOut) ?>' style="min-height:80px"></div>
                 <?php endif; ?>
                 <?php if ($canManage): ?>
                 <!-- Edit Tile Modal (moved outside of .tp-tile to avoid event/z-index conflicts) -->
@@ -451,7 +581,7 @@
               </div>
               <?php if ($canManage): ?>
               <!-- Edit Tile Modal -->
-              <div class="modal fade" id="editTileModal<?= (int)$tile['id'] ?>" tabindex="-1" aria-hidden="true">
+              <div class="modal fade" id="editTileModal<?= (int)$tile['id'] ?>" tabindex="-1" aria-hidden="true" <?= ($tile['type'] === 'plugin') ? ('data-plugin-edit="1" data-plugin-type="' . esc((string)($tile['plugin_type'] ?? ''), 'attr') . '" data-plugin-cfg="' . esc((string)($tile['plugin_config'] ?? '{}'), 'attr') . '"') : '' ?>>
                 <div class="modal-dialog modal-lg modal-dialog-scrollable">
                   <div class="modal-content">
                     <div class="modal-header">
@@ -471,12 +601,34 @@
                     <input name="category" class="form-control" value="<?= esc($tile['category'] ?? '') ?>">
                   </div>
                 </div>
-                <?php if ($tile['type'] !== 'file'): ?>
-                  <label class="form-label mt-2"><?= esc(lang('App.pages.dashboard.labels.url')) ?></label>
-                  <input name="url" class="form-control" value="<?= esc($tile['url'] ?? '') ?>">
-                <?php else: ?>
+                <div class="row g-2 mt-1">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Ping für diese Kachel</label>
+                    <?php
+                      $pingMode = 'inherit';
+                      if (array_key_exists('ping_enabled', $tile)) {
+                          if ($tile['ping_enabled'] === null || $tile['ping_enabled'] === '') { $pingMode = 'inherit'; }
+                          elseif ((int)$tile['ping_enabled'] === 1) { $pingMode = 'on'; }
+                          else { $pingMode = 'off'; }
+                      }
+                    ?>
+                    <select name="ping_mode" class="form-select">
+                      <option value="inherit" <?= $pingMode==='inherit'?'selected':''; ?>>Vom Benutzer übernehmen</option>
+                      <option value="on" <?= $pingMode==='on'?'selected':''; ?>>Ping aktivieren</option>
+                      <option value="off" <?= $pingMode==='off'?'selected':''; ?>>Ping deaktivieren</option>
+                    </select>
+                  </div>
+                </div>
+                <?php if ($tile['type'] === 'file'): ?>
                   <label class="form-label mt-2"><?= esc(lang('App.pages.dashboard.labels.new_file')) ?></label>
                   <input type="file" name="file" class="form-control">
+                <?php elseif ($tile['type'] === 'plugin'): ?>
+                  <input type="hidden" name="plugin_type" value="<?= esc((string)($tile['plugin_type'] ?? ''), 'attr') ?>">
+                  <input type="hidden" name="plugin_config" value='<?= esc((string)($tile['plugin_config'] ?? '{}'), 'attr') ?>'>
+                  <div class="mt-2" data-plugin-config-ui></div>
+                <?php else: ?>
+                  <label class="form-label mt-2"><?= esc(lang('App.pages.dashboard.labels.url')) ?></label>
+                  <input name="url" class="form-control" value="<?= esc($tile['url'] ?? '') ?>">
                 <?php endif; ?>
                 <div class="row g-2 mt-1">
                   <div class="col-12 col-md-6">

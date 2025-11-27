@@ -1,6 +1,6 @@
-# toolpages
+# DashTiles
 
-toolpages is a lightweight, self-hosted dashboard where each user can create and customize their own page of tool shortcuts. Supports categories, icons, and personal layouts. Designed for simple, fast access to internal web tools without shared global config.
+DashTiles is a lightweight, self-hosted dashboard where each user can create and customize their own page of tool shortcuts. Supports categories, icons, and personal layouts. Designed for simple, fast access to internal web tools without shared global config.
 
 Roadmap (current session)
 1) Scaffold CodeIgniter 4.6.3 project (PHP 8.3)
@@ -143,3 +143,16 @@ Security notes
 - Uploaded files are stored under writable/uploads/{user_id}/ and are not web-accessible directly via Nginx.
 - Only admins can mark tiles as global or delete global tiles; normal users cannot modify global tiles.
  - Tile visibility checks include: owner, global, explicit user assignment, membership via assigned groups.
+
+Plugins (MVP)
+- Ab dieser Version existiert ein erstes, statisches Plugin‑Serving und eine Plugin‑Liste (Phase 1 des Plans):
+  - Statische Routen (BASE_PATH wird berücksichtigt):
+    - GET {BASE_PATH}/plugins/{pluginId}/plugin.json – liefert das Manifest eines Plugins
+    - GET {BASE_PATH}/plugins/{pluginId}/web/* – liefert Plugin‑Web‑Assets (ES‑Module, CSS, Bilder)
+    - GET {BASE_PATH}/api/plugins – listet installierte Plugins (FS‑Scan)
+  - Ein Demo‑Plugin ist im Repo enthalten: plugins/demo/
+    - Manifest: {BASE_PATH}/plugins/demo/plugin.json
+    - Beispiel‑Modul: {BASE_PATH}/plugins/demo/web/index.js
+  - Hinweise:
+    - Für Production bitte CSP anpassen (siehe .env app.CSPEnabled) – Dynamic Imports werden später berücksichtigt.
+    - Dies ist der erste Schritt. Die Frontend‑Registry und der Plugins‑Tab im #addTileModal folgen in den nächsten Phasen.

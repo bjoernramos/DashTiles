@@ -22,11 +22,18 @@ class ContentSecurityPolicy extends BaseConfig
     /**
      * Default CSP report context
      */
+    /**
+     * Start in Report-Only to beobachten, dann auf false setzen,
+     * sobald alle benötigten Quellen (ggf. dynamisch) sauber erfasst sind.
+     */
     public bool $reportOnly = false;
 
     /**
      * Specifies a URL where a browser will send reports
      * when a content security policy is violated.
+     */
+    /**
+     * Optionaler Endpoint für CSP-Reports (kann über Nginx/Collector entgegengenommen werden)
      */
     public ?string $reportURI = null;
 
@@ -47,12 +54,19 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string|null
      */
-    public $defaultSrc;
+    /**
+     * Strikte Basis: nur eigene Origin
+     */
+    public $defaultSrc = 'self';
 
     /**
      * Lists allowed scripts' URLs.
      *
      * @var list<string>|string
+     */
+    /**
+     * Plugins werden als ES-Module von /plugins/* (gleiche Origin) geladen → 'self' reicht
+     * Keine Inline-Skripte; falls notwendig, Nonces/Hashes verwenden.
      */
     public $scriptSrc = 'self';
 
@@ -61,6 +75,9 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
+    /**
+     * Keine Inline-Styles, Styles ausschließlich lokal.
+     */
     public $styleSrc = 'self';
 
     /**
@@ -68,7 +85,11 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public $imageSrc = 'self';
+    /**
+     * Erlaubt lokale Bilder + data: (z. B. eingebettete SVG/Icons). Externe Bild-Domains
+     * können zur Laufzeit via service('csp')->addImageSrc('https://...') ergänzt werden.
+     */
+    public $imageSrc = ['self', 'data:'];
 
     /**
      * Restricts the URLs that can appear in a page's `<base>` element.
@@ -77,7 +98,10 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string|null
      */
-    public $baseURI;
+    /**
+     * Basis-URI auf eigene Origin beschränken
+     */
+    public $baseURI = 'self';
 
     /**
      * Lists the URLs for workers and embedded frame contents
@@ -92,6 +116,13 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
+    /**
+     * Externe APIs werden standardmäßig NICHT direkt erlaubt.
+     * Zwei Wege für Plugins:
+     *  - Server-Proxy unter /api/plugins/{id}/fetch → bleibt 'self'.
+     *  - Oder Origins pro Response dynamisch ergänzen (Manifest/Permissions),
+     *    z. B. service('csp')->addConnectSrc('https://api.example.com').
+     */
     public $connectSrc = 'self';
 
     /**
@@ -99,7 +130,10 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public $fontSrc;
+    /**
+     * Webfonts lokal (self); data: für eingebettete WOFF2-Fonts erlaubt
+     */
+    public $fontSrc = ['self', 'data:'];
 
     /**
      * Lists valid endpoints for submission from `<form>` tags.
@@ -116,7 +150,10 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string|null
      */
-    public $frameAncestors;
+    /**
+     * Schutz vor Clickjacking – Seite darf nur von sich selbst gerahmt werden
+     */
+    public $frameAncestors = 'self';
 
     /**
      * The frame-src directive restricts the URLs which may
@@ -124,26 +161,33 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string|null
      */
-    public $frameSrc;
+    /**
+     * Iframe-Kacheln für externe Seiten benötigen ggf. dynamische Freigabe:
+     * service('csp')->addFrameSrc('https://ziel.example');
+     */
+    public $frameSrc = 'self';
 
     /**
      * Restricts the origins allowed to deliver video and audio.
      *
      * @var list<string>|string|null
      */
-    public $mediaSrc;
+    public $mediaSrc = 'self';
 
     /**
      * Allows control over Flash and other plugins.
      *
      * @var list<string>|string
      */
-    public $objectSrc = 'self';
+    /**
+     * Plugins wie Flash/Java sind nicht erlaubt
+     */
+    public $objectSrc = 'none';
 
     /**
      * @var list<string>|string|null
      */
-    public $manifestSrc;
+    public $manifestSrc = 'self';
 
     /**
      * Limits the kinds of plugins a page may invoke.
