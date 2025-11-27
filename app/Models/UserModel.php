@@ -15,6 +15,8 @@ class UserModel extends Model
     protected $allowedFields = [
         'username', 'display_name', 'email', 'auth_source', 'password_hash',
         'ldap_dn', 'role', 'is_active',
+        // Profile fields
+        'first_name', 'last_name', 'phone', 'address', 'profile_image',
     ];
 
     protected $returnType = 'array';
@@ -24,6 +26,11 @@ class UserModel extends Model
         'email'    => 'permit_empty|valid_email|max_length[190]',
         'role'     => 'required|in_list[admin,user]',
         'auth_source' => 'required|in_list[local,ldap]',
+        'first_name' => 'permit_empty|max_length[190]',
+        'last_name'  => 'permit_empty|max_length[190]',
+        'phone'      => 'permit_empty|max_length[190]',
+        'address'    => 'permit_empty|max_length[512]',
+        'profile_image' => 'permit_empty|max_length[512]',
     ];
 
     protected $validationMessages = [];
