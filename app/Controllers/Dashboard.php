@@ -140,6 +140,8 @@ class Dashboard extends BaseController
             'grouped'  => $grouped,
             'userId'   => $userId,
             'role'     => $role,
+            'backgroundEnabled' => (int)($settings['background_enabled'] ?? 0),
+            'pingEnabled' => (int)($settings['ping_enabled'] ?? 1),
             'usersList'=> $users,
             'groupsList'=> $groups,
             'tileUserMap' => $tileUserMap,

@@ -14,6 +14,7 @@ $locale     = service('request')->getLocale();
         <li class="nav-item"><a class="nav-link" href="<?= site_url('/') ?>"><?= esc(lang('App.nav.start')) ?></a></li>
         <?php if ($isLoggedIn): ?>
           <li class="nav-item"><a class="nav-link" href="<?= site_url('dashboard') ?>"><?= esc(lang('App.nav.dashboard')) ?></a></li>
+          <li class="nav-item"><a class="nav-link" href="<?= site_url('profile') ?>">Profil</a></li>
         <?php endif; ?>
         <?php if ($isAdmin): ?>
           <li class="nav-item dropdown">

@@ -48,3 +48,12 @@ $routes->post('dashboard/tile/(\d+)/hide', 'Dashboard::hide/$1');
 $routes->post('dashboard/tile/(\d+)/unhide', 'Dashboard::unhide/$1');
 // Serve user file tiles securely
 $routes->get('file/(\d+)', 'Dashboard::file/$1');
+
+// Profile routes (authenticated)
+$routes->group('profile', ['filter' => 'auth'], static function (RouteCollection $routes) {
+    $routes->get('/', 'Profile::index');
+    $routes->post('profile', 'Profile::updateProfile');
+    $routes->post('password', 'Profile::updatePassword');
+    $routes->post('avatar', 'Profile::updateAvatar');
+    $routes->post('settings', 'Profile::updateSettings');
+});

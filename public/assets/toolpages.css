@@ -36,3 +36,20 @@
 .zoom:hover {
     transform: scale(1.05); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
 }
+
+/* Optional full-page background when enabled in user settings */
+body.tp-bg-enabled {
+  /* Subtle radial gradient background (can be replaced later by a user-provided image) */
+  background: radial-gradient(circle at 25% 15%, rgba(0,0,0,0.05), transparent 40%),
+              radial-gradient(circle at 80% 30%, rgba(0,0,0,0.04), transparent 45%),
+              radial-gradient(circle at 30% 80%, rgba(0,0,0,0.05), transparent 50%),
+              #f8f9fa;
+}
+@media (prefers-color-scheme: dark) {
+  body.tp-bg-enabled {
+    background: radial-gradient(circle at 25% 15%, rgba(255,255,255,0.05), transparent 40%),
+                radial-gradient(circle at 80% 30%, rgba(255,255,255,0.04), transparent 45%),
+                radial-gradient(circle at 30% 80%, rgba(255,255,255,0.05), transparent 50%),
+                #0f1115;
+  }
+}

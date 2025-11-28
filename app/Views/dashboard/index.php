@@ -6,7 +6,7 @@
   <title><?= esc(lang('App.pages.dashboard.title')) ?> • <?= esc(lang('App.brand')) ?></title>
   <?= view('partials/bootstrap_head') ?>
 </head>
-<body>
+<body class="<?= !empty($backgroundEnabled) ? 'tp-bg-enabled' : '' ?>">
   <?= view('partials/nav') ?>
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -367,7 +367,9 @@
                 }
               ?>
               <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?> data-tile-id="<?= (int)$tile['id'] ?>" draggable="true">
-                <span class="tp-ping" aria-hidden="true"></span>
+                <?php if (!empty($pingEnabled)): ?>
+                  <span class="tp-ping" aria-hidden="true"></span>
+                <?php endif; ?>
                 <div class="d-flex justify-content-between align-items-center mb-2">
 
                   <h4 class="h6 d-flex align-items-center gap-2 m-0">
