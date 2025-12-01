@@ -57,28 +57,84 @@ class AuthController extends BaseController
 
         $userModel = new UserModel();
         $user = $userModel->findByUsername($username);
+
+        // Helper: extract fields from LDAP entry
+        $ldapDisplay = $entry['displayName'] ?? ($entry['cn'] ?? null);
+        $ldapFirst   = $entry['givenName'] ?? null;
+        $ldapLast    = $entry['sn'] ?? null;
+        $ldapMail    = $entry['mail'] ?? null;
+        $ldapPhone   = $entry['telephoneNumber'] ?? null;
+        // Build a simple address string if components exist
+        $street      = $entry['streetAddress'] ?? ($entry['street'] ?? null);
+        $city        = $entry['l'] ?? null;
+        $postal      = $entry['postalCode'] ?? null;
+        $ldapAddress = null;
+        if ($street || $postal || $city) {
+            $parts = [];
+            if ($street) { $parts[] = $street; }
+            $pcCity = trim(($postal ? ($postal . ' ') : '') . ($city ?: ''));
+            if ($pcCity !== '') { $parts[] = $pcCity; }
+            $ldapAddress = implode(', ', $parts);
+        }
+
         if (! $user) {
             // Auto-create
             $userId = $userModel->insert([
                 'username'      => $entry['uid'] ?? $username,
-                'display_name'  => $entry['cn'] ?? null,
-                'email'         => $entry['mail'] ?? null,
+                'display_name'  => $ldapDisplay,
+                'email'         => $ldapMail,
                 'auth_source'   => 'ldap',
                 'password_hash' => null,
                 'ldap_dn'       => $entry['dn'] ?? null,
                 'role'          => 'user',
                 'is_active'     => 1,
+                // Optional profile fields
+                'first_name'    => $ldapFirst,
+                'last_name'     => $ldapLast,
+                'phone'         => $ldapPhone,
+                'address'       => $ldapAddress,
             ]);
             $user = $userModel->find($userId);
         } else {
             // Ensure fields are up to date
-            $userModel->update($user['id'], [
+            $update = [
                 'auth_source' => 'ldap',
                 'ldap_dn'     => $entry['dn'] ?? $user['ldap_dn'],
-                'display_name'=> $entry['cn'] ?? $user['display_name'],
-                'email'       => $entry['mail'] ?? $user['email'],
-            ]);
+            ];
+            // Always refresh display_name/email from LDAP if provided
+            if ($ldapDisplay) { $update['display_name'] = $ldapDisplay; }
+            if ($ldapMail)    { $update['email'] = $ldapMail; }
+            // For other profile fields: only fill in if currently empty to preserve local overrides
+            if ($ldapFirst && empty($user['first_name'])) { $update['first_name'] = $ldapFirst; }
+            if ($ldapLast && empty($user['last_name']))   { $update['last_name']  = $ldapLast; }
+            if ($ldapPhone && empty($user['phone']))      { $update['phone']      = $ldapPhone; }
+            if ($ldapAddress && empty($user['address']))  { $update['address']    = $ldapAddress; }
+
+            $userModel->update($user['id'], $update);
             $user = $userModel->find($user['id']);
+        }
+
+        // Optional avatar from LDAP jpegPhoto: store only if user has none
+        try {
+            if (empty($user['profile_image']) && !empty($entry['jpegPhoto']) && is_string($entry['jpegPhoto'])) {
+                $imgData = $entry['jpegPhoto'];
+                // Create target directory
+                $publicDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR;
+                $targetDir = $publicDir . 'uploads' . DIRECTORY_SEPARATOR . 'avatars' . DIRECTORY_SEPARATOR . (int)$user['id'];
+                if (! is_dir($targetDir)) {
+                    @mkdir($targetDir, 0775, true);
+                }
+                // Write jpeg bytes (best guess, LDAP usually stores JPEG)
+                $filePath = $targetDir . DIRECTORY_SEPARATOR . 'ldap.jpg';
+                @file_put_contents($filePath, $imgData);
+                if (is_file($filePath) && filesize($filePath) > 0) {
+                    $rel = 'uploads/avatars/' . (int)$user['id'] . '/ldap.jpg';
+                    $userModel->update((int)$user['id'], ['profile_image' => $rel]);
+                    $user['profile_image'] = $rel;
+                }
+            }
+        } catch (\Throwable $e) {
+            // ignore avatar errors
         }
 
         if ((int) $user['is_active'] !== 1) {

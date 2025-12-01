@@ -47,6 +47,7 @@ class Home extends BaseController
                 $data['columns'] = (int) ($settings['columns'] ?? 3);
                 $data['tiles']   = $tiles;
                 $data['grouped'] = $grouped;
+                $data['settings'] = $settings;
             } else {
                 $data['tiles_error'] = 'Die Dashboard-Tabellen fehlen. Bitte Migrationen ausführen (php spark migrate).';
             }

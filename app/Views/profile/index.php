@@ -146,6 +146,31 @@
               <input class="form-check-input" type="checkbox" role="switch" id="background_enabled" name="background_enabled" value="1" <?= ((int)($settings['background_enabled'] ?? 0) === 1) ? 'checked' : '' ?>>
               <label class="form-check-label" for="background_enabled">Hintergrundbild aktivieren</label>
             </div>
+            <hr class="mt-2">
+            <div class="col-12">
+              <h6 class="mb-2">Suche in der Kopfzeile</h6>
+            </div>
+            <div class="col-12 form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="search_tile_enabled" name="search_tile_enabled" value="1" <?= ((int)($settings['search_tile_enabled'] ?? 1) === 1) ? 'checked' : '' ?>>
+              <label class="form-check-label" for="search_tile_enabled">Suchleiste anzeigen</label>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="search_engine">Suchmaschine</label>
+              <?php $engine = $settings['search_engine'] ?? 'google'; ?>
+              <select class="form-select" id="search_engine" name="search_engine">
+                <option value="google" <?= $engine==='google'?'selected':'' ?>>Google</option>
+                <option value="duckduckgo" <?= $engine==='duckduckgo'?'selected':'' ?>>DuckDuckGo</option>
+                <option value="bing" <?= $engine==='bing'?'selected':'' ?>>Bing</option>
+                <option value="startpage" <?= $engine==='startpage'?'selected':'' ?>>Startpage</option>
+                <option value="ecosia" <?= $engine==='ecosia'?'selected':'' ?>>Ecosia</option>
+              </select>
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="search_autofocus" name="search_autofocus" value="1" <?= ((int)($settings['search_autofocus'] ?? 0) === 1) ? 'checked' : '' ?>>
+                <label class="form-check-label" for="search_autofocus">Eingabefeld automatisch fokussieren</label>
+              </div>
+            </div>
             <div class="col-12">
               <button class="btn btn-primary" type="submit">Einstellungen speichern</button>
             </div>

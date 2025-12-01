@@ -101,9 +101,23 @@ class Profile extends BaseController
         if ($userId <= 0) { return redirect()->to('/login'); }
         $ping = $this->request->getPost('ping_enabled') ? 1 : 0;
         $bg   = $this->request->getPost('background_enabled') ? 1 : 0;
+        $searchEnabled = $this->request->getPost('search_tile_enabled') ? 1 : 0;
+        $searchAutofocus = $this->request->getPost('search_autofocus') ? 1 : 0;
+        $engine = (string) ($this->request->getPost('search_engine') ?? 'google');
+        $allowedEngines = ['google','duckduckgo','bing','startpage','ecosia'];
+        if (!in_array($engine, $allowedEngines, true)) {
+            $engine = 'google';
+        }
         $settings = new UserSettingModel();
         $exists = $settings->find($userId);
-        $payload = ['user_id' => $userId, 'ping_enabled' => $ping, 'background_enabled' => $bg];
+        $payload = [
+            'user_id' => $userId,
+            'ping_enabled' => $ping,
+            'background_enabled' => $bg,
+            'search_tile_enabled' => $searchEnabled,
+            'search_engine' => $engine,
+            'search_autofocus' => $searchAutofocus,
+        ];
         if ($exists) { $settings->update($userId, $payload); }
         else { $settings->insert($payload + ['columns' => 3]); }
         return redirect()->to('/profile')->with('success', 'Einstellungen gespeichert.');

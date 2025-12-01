@@ -9,14 +9,26 @@
 </head>
 <body <?= session()->get('user_id') ? ('data-user-id="'.(int)session()->get('user_id').'"') : '' ?> >
   <?= view('partials/nav') ?>
-  <div class="container py-4">
+  <div class="container py-4 header-tile">
     <div class="card shadow-sm mb-3">
       <div class="card-body">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
           <h1 class="h3 m-0"><?= esc(lang('App.brand')) ?></h1>
 
         </div>
-          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <?php $s = $settings ?? null; ?>
+        <?php if (session()->get('user_id') && is_array($s) && (int)($s['search_tile_enabled'] ?? 1) === 1): ?>
+          <?php $engine = (string)($s['search_engine'] ?? 'google'); $af = (int)($s['search_autofocus'] ?? 0); ?>
+          <form class="mt-2" id="tp-header-search" data-tp-search="1" data-engine="<?= esc($engine) ?>" data-autofocus="<?= $af ? '1' : '0' ?>" role="search" onsubmit="return false;">
+            <div class="input-group">
+              <span class="input-group-text"><span class="material-symbols-outlined" aria-hidden="true">search</span></span>
+              <input type="search" class="form-control" id="tp-header-search-input" name="q" placeholder="Suche im Web" autocomplete="off">
+              <button class="btn btn-primary" type="submit">Suchen</button>
+            </div>
+            <div class="form-text">Eingabe + Enter öffnet die Suche in einem neuen Tab.</div>
+          </form>
+        <?php endif; ?>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
           <span id="clock"></span>
           </div>
 

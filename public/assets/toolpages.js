@@ -27,8 +27,11 @@
           signal: ctrl.signal,
           headers: { 'Accept': 'application/json' }
         }).then(function(r){ return r.json().catch(function(){ return {}; }); })
-          .then(function(data){ clearTimeout(timer); if (data && data.ok) resolve(true); else reject(new Error('bad')); })
-          .catch(function(){ clearTimeout(timer); reject(new Error('fetch')); });
+          .then(function(data){
+              clearTimeout(timer);
+              if (data && data.ok) resolve(true);
+              else reject(new Error('bad')); })
+          .catch(function(){ clearTimeout(timer);  reject(new Error('fetch')); });
       } catch(e) { reject(e); }
     });
   }
@@ -42,7 +45,7 @@
       if (!dot) return;
       var delay = 50 * (idx % 20);
       setTimeout(function(){
-        doPing(url, 3500)
+        doPing(url, 5000)
           .then(function(){ dot.classList.remove(DOT_ERR); dot.classList.add(DOT_OK); })
           .catch(function(){ dot.classList.remove(DOT_OK); dot.classList.add(DOT_ERR); });
       }, delay);
@@ -295,6 +298,44 @@
     });
   }
 
+  // --- Header Search ------------------------------------------------------
+  function engineUrl(engine, query){
+    var q = encodeURIComponent(query || '');
+    switch (engine) {
+      case 'duckduckgo': return 'https://duckduckgo.com/?q=' + q;
+      case 'bing': return 'https://www.bing.com/search?q=' + q;
+      case 'startpage': return 'https://www.startpage.com/do/search?q=' + q;
+      case 'ecosia': return 'https://www.ecosia.org/search?q=' + q;
+      case 'google':
+      default: return 'https://www.google.com/search?q=' + q;
+    }
+  }
+
+  function initHeaderSearch(){
+    var form = document.querySelector('form[data-tp-search="1"]');
+    if (!form) return;
+    var input = form.querySelector('input[type="search"]');
+    var btn = form.querySelector('button[type="submit"]');
+    var engine = form.getAttribute('data-engine') || 'google';
+    var autofocus = form.getAttribute('data-autofocus') === '1';
+
+    function openSearch(){
+      if (!input) return;
+      var q = input.value.trim();
+      if (q === '') return; // Require a query
+      var url = engineUrl(engine, q);
+      try { window.open(url, '_blank', 'noopener'); } catch(_) {}
+    }
+
+    if (autofocus && input) {
+      try { setTimeout(function(){ input.focus(); input.select && input.select(); }, 50); } catch(_) {}
+    }
+
+    form.addEventListener('submit', function(ev){ ev.preventDefault(); openSearch(); });
+    if (btn) btn.addEventListener('click', function(ev){ ev.preventDefault(); openSearch(); });
+    if (input) input.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') { ev.preventDefault(); openSearch(); } });
+  }
+
     function startTime() {
         try {
             var clockEl = document.getElementById('clock');
@@ -324,6 +365,7 @@
     initSortableTiles();
     initAddTileModalSubmitBinding();
     initDeleteTiles();
+    initHeaderSearch();
     // Uhr nur initialisieren, wenn ein Clock-Element existiert
     if (document.getElementById('clock')) {
       startTime();
