@@ -18,25 +18,33 @@
   } catch(e) { /* noop */ }
 })();
 </script>
-<!-- Bootstrap 5 CSS via CDN -->
+<?php
+  // Expose effective base path to frontend JS so assets resolve under subpaths (e.g., /toolpages)
+  $tpBasePath = rtrim((string) (getenv('toolpages.basePath') ?: '/'), '/');
+  if ($tpBasePath === '') { $tpBasePath = '/'; }
+?>
+<script>
+// Publish base path for asset loaders (used by Iconify line-md loader, etc.)
+(function(){
+  try {
+    var bp = '<?= esc($tpBasePath) ?>';
+    window.__TP_BASE_PATH__ = bp;
+    window.__TP_ASSETS_BASE__ = bp === '/' ? '' : bp; // used to prefix "/assets/..." when app runs under subpath
+  } catch(e) { /* noop */ }
+})();
+</script>
+<!-- Bootstrap 5 CSS (lokal, um CDN-Latenzen zu vermeiden) -->
 <link
-  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+  href="<?= esc(base_url('assets/vendor/bootstrap/bootstrap.min.css')) ?>"
   rel="stylesheet"
-  integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-  crossorigin="anonymous"
 />
 <!-- Material Symbols (Outlined) — bevorzugt lokal, mit CDN-Fallback -->
 <!-- Lokale Variante (kopiere die Webfonts ins Repo unter public/assets/vendor/material-symbols/) -->
 <link rel="stylesheet" href="<?= esc(base_url('assets/vendor/material-symbols/material-symbols.css')) ?>">
-<!-- Fallback von Google Fonts (wird genutzt, wenn lokale Datei nicht vorhanden ist) -->
-<link
-  rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0"
-  crossorigin="anonymous"
->
-<!-- Material Icons (Legacy) — bevorzugt lokal, mit CDN-Fallback -->
+<!-- Entfernt: Externer Google Fonts Fallback, um externe Latenzen zu vermeiden -->
+<!-- Material Icons (Legacy) — bevorzugt lokal -->
 <link rel="stylesheet" href="<?= esc(base_url('assets/vendor/material-icons/material-icons.css')) ?>">
-<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" crossorigin="anonymous">
+<!-- Entfernt: Externer Google Fonts Fallback für Material Icons -->
 <meta name="color-scheme" content="light dark" />
 <!-- App endpoints for system-wide JS -->
 <meta name="tp:ping" content="<?= esc(site_url('ping')) ?>">

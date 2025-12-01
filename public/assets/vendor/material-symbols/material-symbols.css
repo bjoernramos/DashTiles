@@ -8,16 +8,17 @@
         public/assets/vendor/material-symbols/fonts/material-symbols-outlined.woff2
 */
 @font-face {
-  font-family: 'Material Symbols Outlined';
+  font-family: 'Material Symbols Rounded';
   font-style: normal;
   font-weight: 100 700;
-  /* The fonts directory is a sibling of this CSS file: ./fonts/material-symbols-outlined.woff2 */
-  src: url('fonts/material-symbols-outlined.woff2') format('woff2');
+  /* Using available local file: public/assets/vendor/material-symbols/material-symbols-rounded.woff2 */
+  src: url('material-symbols-rounded.woff2') format('woff2');
   font-display: swap;
 }
 
 .material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
+  /* Map outlined class to rounded font if outlined WOFF2 is not present */
+  font-family: 'Material Symbols Rounded';
   font-weight: 400;
   font-style: normal;
   font-size: 1em;

@@ -113,7 +113,7 @@
           <div class="row g-3 align-items-center">
             <div class="col-md-3">
               <?php if ($avatar): ?>
-                <img src="/<?= esc($avatar) ?>" class="img-fluid rounded border" alt="Avatar">
+                <img src="<?= esc(base_url($avatar)) ?>" class="img-fluid rounded border" alt="Avatar">
               <?php else: ?>
                 <div class="text-muted small">Noch kein Profilbild.</div>
               <?php endif; ?>
@@ -181,6 +181,6 @@
   </div>
 </div>
 
-<script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="<?= esc(base_url('assets/vendor/bootstrap/bootstrap.bundle.min.js')) ?>"></script>
 </body>
 </html>

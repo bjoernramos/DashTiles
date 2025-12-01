@@ -94,11 +94,11 @@
                   <span class="tp-ping" aria-hidden="true"></span>
                   <h4 class="h6 d-flex align-items-center gap-2 mb-2">
                     <?php if (!empty($tile['icon_path'])): ?>
-                      <img src="<?= esc(base_url($tile['icon_path'])) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
+                      <img src="<?= esc(base_url($tile['icon_path'])) ?>" loading="lazy" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
                     <?php elseif (!empty($tile['icon'])): ?>
                       <?php $icon = (string) $tile['icon']; $isImg = str_starts_with($icon, 'http://') || str_starts_with($icon, 'https://') || str_starts_with($icon, '/'); ?>
                       <?php if ($isImg): ?>
-                        <img src="<?= esc($icon) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
+                        <img src="<?= esc($icon) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px" loading="lazy">
                       <?php else: ?>
                         <?php if (str_starts_with($icon, 'line-md:')): ?>
                           <span class="iconify" data-icon="<?= esc($icon) ?>" aria-hidden="true"></span>
