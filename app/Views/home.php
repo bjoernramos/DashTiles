@@ -91,7 +91,9 @@
                     }
                   ?>
                   <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?>>
-                  <span class="tp-ping" aria-hidden="true"></span>
+                  <?php if ((int)($settings['ping_enabled'] ?? 1) === 1 && (!isset($tile['ping_enabled']) || (int)$tile['ping_enabled'] === 1)): ?>
+                    <span class="tp-ping" aria-hidden="true"></span>
+                  <?php endif; ?>
                   <h4 class="h6 d-flex align-items-center gap-2 mb-2">
                     <?php if (!empty($tile['icon_path'])): ?>
                       <img src="<?= esc(base_url($tile['icon_path'])) ?>" loading="lazy" alt="" style="height:18px;vertical-align:middle;border-radius:3px">

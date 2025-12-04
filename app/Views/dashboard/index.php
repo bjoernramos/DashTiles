@@ -11,10 +11,6 @@
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
       <h1 class="h3 m-0"><?= esc(lang('App.pages.dashboard.title')) ?></h1>
-      <div class="d-flex gap-2">
-        <a class="btn btn-secondary" href="/"><?= esc(lang('App.pages.dashboard.back')) ?></a>
-        <a class="btn btn-outline-secondary" href="/logout"><?= esc(lang('App.pages.dashboard.logout')) ?></a>
-      </div>
     </div>
 
     <?php 
@@ -163,10 +159,18 @@
                       <div class="form-text">Wenn beide gesetzt sind, wird der manuelle Wert verwendet.</div>
                     </div>
                   </div>
+                  <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" id="plink_ping" name="ping_enabled" value="1" checked>
+                    <label class="form-check-label" for="plink_ping">Status-Ping anzeigen</label>
+                  </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" name="is_global" value="1" id="lg1">
                     <label class="form-check-label" for="lg1"><?= esc(lang('App.pages.dashboard.labels.global')) ?></label>
+                  </div>
+                  <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" id="pfile_ping" name="ping_enabled" value="1" checked>
+                    <label class="form-check-label" for="pfile_ping">Status-Ping anzeigen</label>
                   </div>
                   <?php endif; ?>
                   <div class="row g-2 mt-1">
@@ -229,6 +233,10 @@
                       <input type="text" name="bg_color" class="form-control" placeholder="#112233 oder linear-gradient(45deg, #123, #456)" oninput="this.form.elements['bg_color_picker_used'].value=this.value?'0':this.form.elements['bg_color_picker_used'].value">
                       <div class="form-text">Wenn beide gesetzt sind, wird der manuelle Wert verwendet.</div>
                     </div>
+                  </div>
+                  <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" id="pfile_ping" name="ping_enabled" value="1" checked>
+                    <label class="form-check-label" for="pfile_ping">Status-Ping anzeigen</label>
                   </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
@@ -296,6 +304,10 @@
                       <input type="text" name="bg_color" class="form-control" placeholder="#112233 oder linear-gradient(45deg, #123, #456)" oninput="this.form.elements['bg_color_picker_used'].value=this.value?'0':this.form.elements['bg_color_picker_used'].value">
                       <div class="form-text">Wenn beide gesetzt sind, wird der manuelle Wert verwendet.</div>
                     </div>
+                  </div>
+                  <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" id="piframe_ping" name="ping_enabled" value="1" checked>
+                    <label class="form-check-label" for="piframe_ping">Status-Ping anzeigen</label>
                   </div>
                   <?php if (($role) === 'admin'): ?>
                   <div class="form-check mt-2">
@@ -367,7 +379,7 @@
                 }
               ?>
               <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?> data-tile-id="<?= (int)$tile['id'] ?>" draggable="true">
-                <?php if (!empty($pingEnabled)): ?>
+                <?php if (!empty($pingEnabled) && (!isset($tile['ping_enabled']) || (int)$tile['ping_enabled'] === 1)): ?>
                   <span class="tp-ping" aria-hidden="true"></span>
                 <?php endif; ?>
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -528,6 +540,10 @@
                   <?php endif; ?>
                 </div>
                 <!-- position removed: assignment handled by backend and reorder endpoint -->
+                <div class="form-check form-switch mt-2">
+                  <input class="form-check-input" type="checkbox" name="ping_enabled" id="pe<?= (int)$tile['id'] ?>" value="1" <?= ((int)($tile['ping_enabled'] ?? 1) === 1 ? 'checked' : '') ?>>
+                  <label class="form-check-label" for="pe<?= (int)$tile['id'] ?>">Status-Ping anzeigen</label>
+                </div>
                 <?php if (($role ?? 'user') === 'admin'): ?>
                   <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" name="is_global" value="1" id="gg<?= (int)$tile['id'] ?>" <?= (!empty($tile['is_global']) && (int)$tile['is_global'] === 1 ? 'checked' : '') ?>>

@@ -221,6 +221,9 @@ class Dashboard extends BaseController
             'category' => trim((string) $this->request->getPost('category')) ?: null,
         ];
 
+        // Per-tile ping toggle (default enabled)
+        $data['ping_enabled'] = ($this->request->getPost('ping_enabled') ? 1 : 0);
+
         // handle optional uploaded icon/background
         try {
             $iconFile = $this->request->getFile('icon_file');
@@ -309,6 +312,15 @@ class Dashboard extends BaseController
             'text'     => $newText,
             'category' => trim((string) $this->request->getPost('category')) ?: $tile['category'],
         ];
+
+        // Per-tile ping toggle: only update if checkbox present in form
+        $pingPost = $this->request->getPost('ping_enabled');
+        if ($pingPost !== null) {
+            $data['ping_enabled'] = ($pingPost ? 1 : 0);
+        } else if (!isset($tile['ping_enabled'])) {
+            // Defensive default if legacy rows
+            $data['ping_enabled'] = 1;
+        }
 
         // Do not let users set arbitrary positions via the edit form; keep current backend-managed position
         $data['position'] = (int) ($tile['position'] ?? 0);

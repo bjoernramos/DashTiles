@@ -108,30 +108,42 @@ class Home extends BaseController
             }
         }
 
+        // Structured logging: start ping
+        $userId = (int) session()->get('user_id');
+        $reqId = bin2hex(random_bytes(8));
+        $clientIp = (string) ($this->request->getIPAddress() ?? '');
+        log_message('info', 'PING start req={req} user={user} ip={ip} url="{url}" host={host}', [
+            'req'  => $reqId,
+            'user' => $userId,
+            'ip'   => $clientIp,
+            'url'  => $url,
+            'host' => $host,
+        ]);
+
         $client = \Config\Services::curlrequest([
             'http_errors' => false,
             'allow_redirects' => ['max' => 3, 'strict' => false, 'referer' => false],
-            'connect_timeout' => 2.5,
-            'timeout' => 3.0,
+            'connect_timeout' => 3.0,
+            'timeout' => 5.0,
             'verify' => false, // in internal networks self-signed may exist; set true if you require TLS verify
         ]);
 
         $start = microtime(true);
         try {
-            $resp = $client->request('HEAD', $url, [
+            // Many CDNs block HEAD or Range requests. Prefer a simple GET first with a
+            // browser-like User-Agent to improve acceptance.
+            $resp = $client->request('GET', $url, [
                 'headers' => [
-                    'User-Agent' => 'toolpages-ping/1.0',
-                    'Accept' => '*/*',
+                    'User-Agent' => 'Mozilla/5.0 (compatible; ToolpagesPing/1.0; +https://example.invalid) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+                    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 ],
             ]);
             $code = (int) $resp->getStatusCode();
-            // Some servers reject HEAD; fallback to GET byte-range on 4xx/405
-            if ($code >= 400 || $code === 0) {
-                $resp = $client->request('GET', $url, [
+            // Optional fallback: try HEAD if GET yielded no response code
+            if ($code === 0) {
+                $resp = $client->request('HEAD', $url, [
                     'headers' => [
-                        'User-Agent' => 'toolpages-ping/1.0',
-                        'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                        'Range' => 'bytes=0-0',
+                        'User-Agent' => 'Mozilla/5.0 (compatible; ToolpagesPing/1.0)'
                     ],
                 ]);
                 $code = (int) $resp->getStatusCode();
@@ -139,9 +151,24 @@ class Home extends BaseController
             $ms = (int) round((microtime(true) - $start) * 1000);
             $ok = ($code > 0 && $code < 400);
             $payload = ['ok' => $ok, 'status' => $code, 'ms' => $ms];
+
+            log_message($ok ? 'info' : 'warning', 'PING done req={req} user={user} status={status} ms={ms} url="{url}"', [
+                'req'    => $reqId,
+                'user'   => $userId,
+                'status' => $code,
+                'ms'     => $ms,
+                'url'    => $url,
+            ]);
             return $this->response->setStatusCode($ok ? 200 : 502)->setJSON($payload);
         } catch (\Throwable $e) {
             $ms = (int) round((microtime(true) - $start) * 1000);
+            log_message('error', 'PING fail req={req} user={user} ms={ms} url="{url}" err={err}', [
+                'req'  => $reqId,
+                'user' => $userId,
+                'ms'   => $ms,
+                'url'  => $url,
+                'err'  => $e->getMessage(),
+            ]);
             return $this->response->setStatusCode(502)->setJSON(['ok' => false, 'error' => 'request_failed', 'ms' => $ms]);
         }
     }
