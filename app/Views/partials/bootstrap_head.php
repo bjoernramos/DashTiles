@@ -54,27 +54,7 @@
 <meta name="tp:reorder" content="<?= esc(site_url('dashboard/reorder')) ?>">
 <!-- System-wide custom CSS -->
 <link rel="stylesheet" href="<?= esc(base_url('assets/toolpages.css')) ?>">
-<!-- Iconify Runtime (lokal + Fallback) für line-md Icon-Set -->
+<!-- Iconify Runtime (nur lokal, ohne Fallbacks) für line-md Icon-Set -->
 <script src="<?= esc(base_url('assets/vendor/iconify/iconify.min.js')) ?>" defer></script>
 <script src="<?= esc(base_url('assets/vendor/iconify/load-line-md.js')) ?>" defer></script>
-<script>
-// Falls die lokale Iconify-Runtime nicht vorhanden ist, versuche node_modules, sonst CDN
-window.addEventListener('DOMContentLoaded', function () {
-  try {
-    if (typeof window.Iconify === 'undefined') {
-      // Versuch: direkt aus node_modules bedienen (wird via Nginx alias freigegeben)
-      var s1 = document.createElement('script');
-      s1.src = '/node_modules/@iconify/iconify/dist/iconify.min.js';
-      s1.defer = true;
-      s1.onerror = function(){
-        var s2 = document.createElement('script');
-        s2.src = 'https://cdn.jsdelivr.net/npm/@iconify/iconify@3/dist/iconify.min.js';
-        s2.defer = true;
-        document.head.appendChild(s2);
-      };
-      document.head.appendChild(s1);
-    }
-  } catch (e) { /* noop */ }
-});
-</script>
 <!-- Hinweis: Für Multi-Selects wird die native Bootstrap-Multiple-Select verwendet (kein zusätzliches Plugin). -->

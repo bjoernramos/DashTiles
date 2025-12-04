@@ -62,10 +62,10 @@
   // --- Tile click handler -------------------------------------------------
   function initTileClicks(){
     try {
-      // Helper: find nearest .tp-tile
+      // Helper: find nearest .tp-tile/.tp-tiles
       function nearestTile(el){
         while (el && el !== document) {
-          if (el.classList && el.classList.contains('tp-tile')) return el;
+          if (el.classList && (el.classList.contains('tp-tile') || el.classList.contains('tp-tiles'))) return el;
           el = el.parentElement;
         }
         return null;
@@ -126,7 +126,7 @@
   // --- Tile pinger --------------------------------------------------------
   function initTilePing(){
     try {
-      var tiles = Array.prototype.slice.call(document.querySelectorAll('.tp-tile'));
+      var tiles = Array.prototype.slice.call(document.querySelectorAll('.tp-tile, .tp-tiles'));
       if (!tiles.length) return;
 
       // Only ping tiles that actually show a ping dot and have a target url
@@ -138,30 +138,12 @@
       }).filter(Boolean);
       if (!items.length) return;
 
-      // Resolve base for endpoint respecting <base href> and reverse proxy base path
-      function buildPingEndpoint(targetUrl){
+      // Helper: origin check
+      function isSameOrigin(targetUrl){
         try {
-          // Prefer explicit endpoint from <meta name="tp:ping" content="...">
-          var meta = document.querySelector('meta[name="tp:ping"][content]');
-          if (meta) {
-            var href = meta.getAttribute('content');
-            // Ensure we append the u parameter correctly
-            var u = new URL(href, window.location.origin);
-            u.searchParams.set('u', targetUrl);
-            return u.toString();
-          }
-
-          // Fallback: derive from <base href> respecting reverse proxy base path
-          var baseEl = document.querySelector('base[href]');
-          var baseHref = baseEl ? baseEl.getAttribute('href') : null;
-          var root = baseHref ? new URL(baseHref, window.location.origin) : new URL('/', window.location.origin);
-          var ep = new URL('ping', root);
-          ep.searchParams.set('u', targetUrl);
-          return ep.toString();
-        } catch(_) {
-          // Last resort
-          return '/ping?u=' + encodeURIComponent(targetUrl);
-        }
+          var u = new URL(targetUrl, window.location.href);
+          return u.origin === window.location.origin;
+        } catch(_) { return false; }
       }
 
       var visible = true;
@@ -192,13 +174,77 @@
           setState(it, null, null, 0);
           return Promise.resolve();
         }
-        var endpoint = buildPingEndpoint(it.url);
+
         // mark as in‑progress
         setState(it, null, null, 0);
-        return fetch(endpoint, { method: 'GET', credentials: 'same-origin' })
-          .then(function(r){ return r.json().catch(function(){ return { ok:false, status:r.status||0, ms:null }; }); })
-          .then(function(data){ setState(it, !!data.ok, (typeof data.ms==='number'?data.ms:null), (typeof data.status==='number'?data.status:0)); })
-          .catch(function(){ setState(it, false, null, 0); });
+
+        var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        var signal = controller ? controller.signal : void 0;
+        var timeoutMs = 5000;
+        var timeoutId = null;
+        if (controller) {
+          try { timeoutId = setTimeout(function(){ try { controller.abort(); } catch(_){} }, timeoutMs); } catch(_) {}
+        }
+
+        var start = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        var same = isSameOrigin(it.url);
+
+        // Try HEAD first
+        var opts = {
+          method: 'HEAD',
+          cache: 'no-store',
+          redirect: 'follow',
+          credentials: same ? 'same-origin' : 'omit',
+          mode: same ? 'same-origin' : 'no-cors',
+          signal: signal
+        };
+
+        function done(ok, status){
+          if (timeoutId) { try { clearTimeout(timeoutId); } catch(_) {} }
+          var end = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+          var ms = end - start;
+          setState(it, ok, Math.round(ms), typeof status === 'number' ? status : 0);
+        }
+
+        function fallbackGet(){
+          // As a fallback, try GET with no-cors/caching disabled; success resolution == reachable
+          var getOpts = {
+            method: 'GET',
+            cache: 'no-store',
+            redirect: 'follow',
+            credentials: same ? 'same-origin' : 'omit',
+            mode: same ? 'same-origin' : 'no-cors',
+            signal: signal
+          };
+          return fetch(it.url, getOpts).then(function(res){
+            if (same) {
+              var ok = (res && (res.ok || (res.status>=200 && res.status<400)));
+              done(!!ok, res ? res.status : 0);
+            } else {
+              // Opaque but resolved → treat as reachable
+              done(true, 0);
+            }
+          }).catch(function(){ done(false, 0); });
+        }
+
+        return fetch(it.url, opts).then(function(res){
+          if (same) {
+            // We can read status
+            if (!res) { done(false, 0); return; }
+            // If HEAD not allowed, retry with GET
+            if (res.status === 405 || res.status === 501) {
+              return fallbackGet();
+            }
+            var ok = res.ok || (res.status>=200 && res.status<400);
+            done(!!ok, res.status);
+          } else {
+            // Cross-origin no-cors returns opaque; reaching this .then means network path succeeded
+            done(true, 0);
+          }
+        }).catch(function(){
+          // HEAD failed; try GET once
+          return fallbackGet();
+        });
       }
 
       // Stagger initial pings to avoid burst

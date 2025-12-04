@@ -55,7 +55,7 @@
           <?php $catId = 'cat_'.md5((string)$category); ?>
           <div class="card mb-3 category" data-cat-wrapper="<?= esc($catId) ?>">
             <div class="card-body">
-              <div class="d-flex align-items-center justify-content-between mb-2">
+              <div class="d-flex align-items-center justify-content-between mb-2 category-head">
                 <h3 class="h5 m-0"><?= esc($category) ?></h3>
                 <button class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" type="button" data-bs-toggle="collapse" data-bs-target="#<?= esc($catId) ?>" aria-expanded="true" aria-controls="<?= esc($catId) ?>" title="<?= esc(lang('App.pages.home.collapse_toggle')) ?>">
                   <span class="material-symbols-outlined" aria-hidden="true" data-cat-icon="<?= esc($catId) ?>">expand_less</span>
@@ -63,7 +63,7 @@
                 </button>
               </div>
               <div id="<?= esc($catId) ?>" class="collapse show" data-cat-id="<?= esc($catId) ?>">
-              <div class="row g-3">
+              <div class="row g-3 category-body">
               <?php foreach ($list as $tile): ?>
                 <div class="col-12 zoom col-md-<?= $colSize ?>">
                   <?php 
@@ -90,10 +90,8 @@
                       $bgStyle = 'background:' . esc($tile['bg_color']) . ';';
                     }
                   ?>
-                  <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?>>
-                  <?php if ((int)($settings['ping_enabled'] ?? 1) === 1 && (!isset($tile['ping_enabled']) || (int)$tile['ping_enabled'] === 1)): ?>
-                    <span class="tp-ping" aria-hidden="true"></span>
-                  <?php endif; ?>
+                  <div class="border rounded p-3 h-100 tp-tiles shadow-sm" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?>>
+
                   <h4 class="h6 d-flex align-items-center gap-2 mb-2">
                     <?php if (!empty($tile['icon_path'])): ?>
                       <img src="<?= esc(base_url($tile['icon_path'])) ?>" loading="lazy" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
@@ -128,6 +126,9 @@
                       <p class="mb-0 text-muted small"><?= esc($tile['text']) ?></p>
                     <?php endif; ?>
                   <?php endif; ?>
+                      <?php if ((int)($settings['ping_enabled'] ?? 1) === 1 && (!isset($tile['ping_enabled']) || (int)$tile['ping_enabled'] === 1)): ?>
+                          <span class="tp-ping" aria-hidden="true"></span>
+                      <?php endif; ?>
                   </div>
                 </div>
               <?php endforeach; ?>
