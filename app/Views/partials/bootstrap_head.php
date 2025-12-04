@@ -47,6 +47,9 @@
 <!-- Entfernt: Externer Google Fonts Fallback für Material Icons -->
 <meta name="color-scheme" content="light dark" />
 <!-- App endpoints for system-wide JS -->
+<?php if (isset($pingEnabled)): ?>
+<meta name="tp:ping-enabled" content="<?= (int)$pingEnabled ?>">
+<?php endif; ?>
 <meta name="tp:ping" content="<?= esc(site_url('ping')) ?>">
 <meta name="tp:reorder" content="<?= esc(site_url('dashboard/reorder')) ?>">
 <!-- System-wide custom CSS -->

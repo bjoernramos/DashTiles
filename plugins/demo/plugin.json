@@ -1,0 +1,40 @@
+{
+  "id": "demo",
+  "name": "Demo Plugin",
+  "version": "0.1.0",
+  "engine": { "toolpages": ">=0.1.0" },
+  "author": { "name": "toolpages", "url": "https://example.local" },
+  "tiles": [
+    {
+      "type": "demo.hello",
+      "title": "Hello Tile (Demo)",
+      "size": { "w": 1, "h": 1 },
+      "icon": "/plugins/demo/web/assets/hello.svg",
+      "entry": "/plugins/demo/web/index.js#register",
+      "defaults": { "message": "Hallo von Plugin!" }
+    },
+    {
+      "type": "demo.rss.reader",
+      "title": "RSS Reader (Demo)",
+      "size": { "w": 1, "h": 2 },
+      "icon": "/plugins/demo/web/assets/hello.svg",
+      "entry": "/plugins/demo/web/rss.js#register",
+      "defaults": {
+        "feedUrl": "https://www.saechsische.de/arc/outboundfeeds/rss/",
+        "maxItems": 10,
+        "showImages": true,
+        "openBehavior": "link"
+      },
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "feedUrl": { "type": "string", "format": "url", "title": "RSS Feed URL", "placeholder": "https://…/rss", "description": "Adresse des RSS/Atom‑Feeds" },
+          "maxItems": { "type": "integer", "minimum": 1, "maximum": 50, "default": 10, "title": "Max. Einträge" },
+          "showImages": { "type": "boolean", "default": true, "title": "Bilder anzeigen" },
+          "openBehavior": { "type": "string", "enum": ["link", "modal"], "default": "link", "title": "Klick‑Verhalten" }
+        },
+        "required": ["feedUrl"]
+      }
+    }
+  ]
+}
