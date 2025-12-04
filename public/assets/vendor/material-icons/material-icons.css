@@ -12,7 +12,7 @@
   font-style: normal;
   font-weight: 400;
   /* The fonts directory is a sibling of this CSS file: ./fonts/MaterialIcons-Regular.woff2 */
-    src: url('material-icons.woff2') format('woff2');
+  src: url('fonts/MaterialIcons-Regular.woff2') format('woff2');
   font-display: swap;
 }
 

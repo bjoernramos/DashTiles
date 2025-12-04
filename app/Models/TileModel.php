@@ -14,8 +14,6 @@ class TileModel extends Model
 
     protected $allowedFields = [
         'user_id', 'is_global', 'type', 'title', 'url', 'icon', 'icon_path', 'bg_path', 'bg_color', 'text', 'category', 'position', 'ping_enabled',
-        // Plugin-spezifisch
-        'plugin_type', 'plugin_config',
     ];
 
     protected $returnType = 'array';
@@ -23,7 +21,7 @@ class TileModel extends Model
     protected $validationRules = [
         'user_id'  => 'required|is_natural_no_zero',
         'is_global'=> 'permit_empty|in_list[0,1]',
-        'type'     => 'required|in_list[link,iframe,file,plugin]',
+        'type'     => 'required|in_list[link,iframe,file]',
         'title'    => 'required|min_length[1]|max_length[190]',
         'url'      => 'permit_empty|max_length[1024]',
         'icon'     => 'permit_empty|max_length[255]',
@@ -33,7 +31,7 @@ class TileModel extends Model
         'text'     => 'permit_empty|max_length[255]',
         'category' => 'permit_empty|max_length[190]',
         'position' => 'permit_empty|integer',
-        'ping_enabled' => 'permit_empty|in_list[0,1]'
+        'ping_enabled' => 'permit_empty|in_list[0,1]',
     ];
 
     public function forUser(int $userId)

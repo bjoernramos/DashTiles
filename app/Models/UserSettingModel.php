@@ -13,7 +13,8 @@ class UserSettingModel extends Model
     protected $useSoftDeletes = false;
 
     protected $allowedFields = [
-        'user_id', 'columns', 'ping_enabled',
+        'user_id', 'columns', 'ping_enabled', 'background_enabled',
+        'search_tile_enabled', 'search_engine', 'search_autofocus',
     ];
 
     protected $returnType = 'array';
@@ -22,6 +23,10 @@ class UserSettingModel extends Model
         'user_id' => 'required|is_natural_no_zero',
         'columns' => 'required|is_natural_no_zero|greater_than_equal_to[1]|less_than_equal_to[6]',
         'ping_enabled' => 'permit_empty|in_list[0,1]',
+        'background_enabled' => 'permit_empty|in_list[0,1]',
+        'search_tile_enabled' => 'permit_empty|in_list[0,1]',
+        'search_autofocus' => 'permit_empty|in_list[0,1]',
+        'search_engine' => 'permit_empty|in_list[google,duckduckgo,bing,startpage,ecosia]'
     ];
 
     public function getOrCreate(int $userId): array
@@ -32,7 +37,18 @@ class UserSettingModel extends Model
         }
         $defaultPing = getenv('PING_DEFAULT_ENABLED');
         $defaultPing = ($defaultPing === false || $defaultPing === '' || $defaultPing === null) ? 1 : ((string)$defaultPing === '0' ? 0 : 1);
-        $this->insert(['user_id' => $userId, 'columns' => 3, 'ping_enabled' => $defaultPing]);
-        return $this->find($userId) ?: ['user_id' => $userId, 'columns' => 3, 'ping_enabled' => $defaultPing];
+        $defaultBg = getenv('BACKGROUND_DEFAULT_ENABLED');
+        $defaultBg = ($defaultBg === false || $defaultBg === '' || $defaultBg === null) ? 0 : ((string)$defaultBg === '1' ? 1 : 0);
+        $defaults = [
+            'user_id' => $userId,
+            'columns' => 3,
+            'ping_enabled' => $defaultPing,
+            'background_enabled' => $defaultBg,
+            'search_tile_enabled' => 1,
+            'search_engine' => 'google',
+            'search_autofocus' => 0,
+        ];
+        $this->insert($defaults);
+        return $this->find($userId) ?: $defaults;
     }
 }

@@ -78,13 +78,38 @@ class LDAPService
     }
 
     /**
-     * @return array{dn:string, cn:?string, uid:string, mail:?string}|null
+     * Sucht Benutzer per uid (konfigurierbares Attribut) und liefert relevante Attribute zurück.
+     *
+     * Rückgabe enthält u. a. optionale Felder für Profil-Sync:
+     *  - displayName|cn, givenName, sn, mail, telephoneNumber, street/streetAddress, l (city), postalCode, jpegPhoto
+     *
+     * @return array{
+     *   dn:string,
+     *   uid:string,
+     *   cn?:?string,
+     *   displayName?:?string,
+     *   givenName?:?string,
+     *   sn?:?string,
+     *   mail?:?string,
+     *   telephoneNumber?:?string,
+     *   street?:?string,
+     *   streetAddress?:?string,
+     *   l?:?string,
+     *   postalCode?:?string,
+     *   jpegPhoto?:?string
+     * }|null
      */
     public function findUserByUid(string $uid): ?array
     {
         $this->adminBind();
         $filter = sprintf('(%s=%s)', $this->uidAttribute, ldap_escape($uid, '', LDAP_ESCAPE_FILTER));
-        $attrs  = ['dn', 'cn', $this->uidAttribute, $this->mailAttribute, 'memberOf'];
+        $attrs  = [
+            'dn', 'cn', 'displayName', 'givenName', 'sn',
+            $this->uidAttribute, $this->mailAttribute,
+            'telephoneNumber', 'street', 'streetAddress', 'l', 'postalCode',
+            'jpegPhoto',
+            'memberOf'
+        ];
         $search = @ldap_search($this->conn, $this->baseDN, $filter, $attrs, 0, 1);
         if (! $search) {
             return null;
@@ -94,11 +119,29 @@ class LDAPService
             return null;
         }
         $entry = $entries[0];
+        $toStr = static function(array $e, string $key): ?string {
+            $k = strtolower($key);
+            return isset($e[$k][0]) ? (string) $e[$k][0] : null;
+        };
+        // jpegPhoto kann binär sein. ldap_get_entries liefert es unter ['jpegphoto'][0]
+        $jpeg = null;
+        if (isset($entry['jpegphoto']) && isset($entry['jpegphoto'][0]) && is_string($entry['jpegphoto'][0])) {
+            $jpeg = $entry['jpegphoto'][0];
+        }
         return [
-            'dn'   => $entry['dn'] ?? '',
-            'cn'   => isset($entry['cn'][0]) ? (string) $entry['cn'][0] : null,
-            'uid'  => isset($entry[$this->uidAttribute][0]) ? (string) $entry[$this->uidAttribute][0] : $uid,
-            'mail' => isset($entry[$this->mailAttribute][0]) ? (string) $entry[$this->mailAttribute][0] : null,
+            'dn'              => $entry['dn'] ?? '',
+            'uid'             => isset($entry[strtolower($this->uidAttribute)][0]) ? (string) $entry[strtolower($this->uidAttribute)][0] : $uid,
+            'cn'              => $toStr($entry, 'cn'),
+            'displayName'     => $toStr($entry, 'displayName'),
+            'givenName'       => $toStr($entry, 'givenName'),
+            'sn'              => $toStr($entry, 'sn'),
+            'mail'            => isset($entry[strtolower($this->mailAttribute)][0]) ? (string) $entry[strtolower($this->mailAttribute)][0] : null,
+            'telephoneNumber' => $toStr($entry, 'telephoneNumber'),
+            'street'          => $toStr($entry, 'street'),
+            'streetAddress'   => $toStr($entry, 'streetAddress'),
+            'l'               => $toStr($entry, 'l'),
+            'postalCode'      => $toStr($entry, 'postalCode'),
+            'jpegPhoto'       => $jpeg,
         ];
     }
 
