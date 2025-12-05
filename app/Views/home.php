@@ -66,70 +66,11 @@
               <div class="row g-3 category-body">
               <?php foreach ($list as $tile): ?>
                 <div class="col-12 zoom col-md-<?= $colSize ?>">
-                  <?php 
-                    $pingUrl = null;
-                    if ($tile['type'] === 'file') {
-                      $pingUrl = site_url('file/' . (int)$tile['id']);
-                    } else {
-                      $pingUrl = (string) ($tile['url'] ?? '');
-                    }
-                    $tileHref = null;
-                    if ($tile['type'] === 'file') {
-                      $tileHref = site_url('file/' . (int)$tile['id']);
-                    } elseif ($tile['type'] === 'link') {
-                      $tileHref = (string) ($tile['url'] ?? '');
-                    } else {
-                      $tileHref = null; // avoid making iframe tiles clickable to not interfere with embedded content
-                    }
-                  ?>
-                  <?php 
-                    $bgStyle = '';
-                    if (!empty($tile['bg_path'])) {
-                      $bgStyle = 'background-image:url(' . esc(base_url($tile['bg_path'])) . ');';
-                    } elseif (!empty($tile['bg_color'])) {
-                      $bgStyle = 'background:' . esc($tile['bg_color']) . ';';
-                    }
-                  ?>
-                  <div class="border rounded p-3 h-100 tp-tiles shadow-sm" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?>>
-
-                  <h4 class="h6 d-flex align-items-center gap-2 mb-2">
-                    <?php if (!empty($tile['icon_path'])): ?>
-                      <img src="<?= esc(base_url($tile['icon_path'])) ?>" loading="lazy" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
-                    <?php elseif (!empty($tile['icon'])): ?>
-                      <?php $icon = (string) $tile['icon']; $isImg = str_starts_with($icon, 'http://') || str_starts_with($icon, 'https://') || str_starts_with($icon, '/'); ?>
-                      <?php if ($isImg): ?>
-                        <img src="<?= esc($icon) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px" loading="lazy">
-                      <?php else: ?>
-                        <?php if (str_starts_with($icon, 'line-md:')): ?>
-                          <span class="iconify" data-icon="<?= esc($icon) ?>" aria-hidden="true"></span>
-                        <?php elseif (str_starts_with($icon, 'mi:')): ?>
-                          <?php $iname = substr($icon, 3); ?>
-                          <span class="material-icons" aria-hidden="true"><?= esc($iname) ?></span>
-                        <?php elseif (str_starts_with($icon, 'ms:')): ?>
-                          <?php $iname = substr($icon, 3); ?>
-                          <span class="material-symbols-outlined" aria-hidden="true"><?= esc($iname) ?></span>
-                        <?php else: ?>
-                          <span class="<?= esc($icon) ?>" aria-hidden="true"></span>
-                        <?php endif; ?>
-                      <?php endif; ?>
-                    <?php endif; ?>
-                    <?= esc($tile['title']) ?>
-                  </h4>
-                  <?php if ($tile['type'] === 'link'): ?>
-                    <?php if (!empty($tile['text'])): ?>
-                      <p class="mb-0 text-muted small"><?= esc($tile['text']) ?></p>
-                    <?php endif; ?>
-                  <?php elseif ($tile['type'] === 'iframe'): ?>
-                    <iframe src="<?= esc($tile['url']) ?>" loading="lazy" style="width:100%;min-height:300px;border:0;border-radius:.5rem"></iframe>
-                  <?php elseif ($tile['type'] === 'file'): ?>
-                    <?php if (!empty($tile['text'])): ?>
-                      <p class="mb-0 text-muted small"><?= esc($tile['text']) ?></p>
-                    <?php endif; ?>
-                  <?php endif; ?>
-                      <?php if ((int)($settings['ping_enabled'] ?? 1) === 1 && (!isset($tile['ping_enabled']) || (int)$tile['ping_enabled'] === 1)): ?>
-                          <span class="tp-ping" aria-hidden="true"></span>
-                      <?php endif; ?>
-                  </div>
+                  <?= view('partials/tile', [
+                    'tile' => $tile,
+                    'manageable' => false,
+                    'settings' => $settings ?? []
+                  ]) ?>
                 </div>
               <?php endforeach; ?>
               </div>

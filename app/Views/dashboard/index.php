@@ -357,126 +357,28 @@
           <h3 class="h5 mb-3"><?= esc($category) ?></h3>
           <div class="row g-3" data-sortable="1" data-category="<?= esc($category) ?>">
           <?php foreach ($list as $tile): ?>
-            <div class="col-12  col-md-<?= $colSize ?>">
-              <?php 
-                $pingUrl = ($tile['type'] === 'file') ? site_url('file/' . (int)$tile['id']) : (string)($tile['url'] ?? '');
-                $tileHref = null;
-                if ($tile['type'] === 'file') {
-                  $tileHref = site_url('file/' . (int)$tile['id']);
-                } elseif ($tile['type'] === 'link') {
-                  $tileHref = (string)($tile['url'] ?? '');
-                } else {
-                  $tileHref = null; // iFrame bleibt eingebettet, keine gesamte Kachel-Klickaktion
-                }
-              ?>
-              <?php 
-                $bgStyle = '';
-                if (!empty($tile['bg_path'])) {
-                  $bgStyle = 'background-image:url(' . esc(base_url($tile['bg_path'])) . ');';
-                } elseif (!empty($tile['bg_color'])) {
-                  // Use generic background so gradients or solid colors work
-                  $bgStyle = 'background:' . esc($tile['bg_color']) . ';';
-                }
-              ?>
-              <div class="border rounded p-3 h-100 tp-tile" style="<?= $bgStyle ?>" data-ping-url="<?= esc($pingUrl) ?>" <?= $tileHref ? ('data-href="' . esc($tileHref) . '"') : '' ?> data-tile-id="<?= (int)$tile['id'] ?>" draggable="true">
-                <?php if (!empty($pingEnabled) && (!isset($tile['ping_enabled']) || (int)$tile['ping_enabled'] === 1)): ?>
-                  <span class="tp-ping" aria-hidden="true"></span>
-                <?php endif; ?>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-
-                  <h4 class="h6 d-flex align-items-center gap-2 m-0">
-                    <?php if (!empty($tile['icon_path'])): ?>
-                      <img src="<?= esc(base_url($tile['icon_path'])) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
-                    <?php elseif (!empty($tile['icon'])): ?>
-                      <?php $icon = (string) $tile['icon']; $isImg = str_starts_with($icon, 'http://') || str_starts_with($icon, 'https://') || str_starts_with($icon, '/'); ?>
-                      <?php if ($isImg): ?>
-                        <img src="<?= esc($icon) ?>" alt="" style="height:18px;vertical-align:middle;border-radius:3px">
-                      <?php else: ?>
-                        <?php if (str_starts_with($icon, 'line-md:')): ?>
-                          <span class="iconify" data-icon="<?= esc($icon) ?>" aria-hidden="true"></span>
-                        <?php elseif (str_starts_with($icon, 'mi:')): ?>
-                          <?php $iname = substr($icon, 3); ?>
-                          <span class="material-icons" aria-hidden="true"><?= esc($iname) ?></span>
-                        <?php elseif (str_starts_with($icon, 'ms:')): ?>
-                          <?php $iname = substr($icon, 3); ?>
-                          <span class="material-symbols-outlined" aria-hidden="true"><?= esc($iname) ?></span>
-                        <?php else: ?>
-                          <span class="<?= esc($icon) ?>" aria-hidden="true"></span>
-                        <?php endif; ?>
-                      <?php endif; ?>
-                    <?php endif; ?>
-                    <?= esc($tile['title']) ?>
-                    <?php if (!empty($tile['is_global']) && (int)$tile['is_global'] === 1): ?>
-                      <span class="badge bg-secondary ms-2"><?= esc(lang('App.pages.dashboard.global_badge')) ?></span>
-                    <?php endif; ?>
-                  </h4>
-                  <?php 
-                    $canManage = false;
-                    if (isset($userId)) {
-                      $isOwner = ((int)($tile['user_id'] ?? 0) === (int)$userId);
-                      $isGlobal = ((int)($tile['is_global'] ?? 0) === 1);
-                      $isAdmin = (($role ?? 'user') === 'admin');
-                      $canManage = $isOwner || ($isAdmin && $isGlobal);
-                    }
-                  ?>
-                  <?php if ($canManage || (!empty($tile['is_global']) && (int)$tile['is_global'] === 1)): ?>
-                  <div class="dropdown">
-                    <button class="btn btn-sm text-secondary border-0 bg-transparent p-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      <span class="material-symbols-outlined">more_vert</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                      <!-- EDIT (öffnet Modal) -->
-                      <?php if ($canManage): ?>
-                      <li>
-                        <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>">
-                          <span class="material-symbols-outlined me-2">edit</span>
-                          <?= esc(lang('App.actions.edit') ?? 'Bearbeiten') ?>
-                        </button>
-                      </li>
-                      <li><hr class="dropdown-divider"></li>
-                      <?php endif; ?>
-                      <!-- HIDE (nur bei globalen Tiles) -->
-                      <?php if (!empty($tile['is_global']) && (int)$tile['is_global'] === 1): ?>
-                      <li>
-                        <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/hide" class="m-0">
-                          <button class="dropdown-item" type="submit">
-                            <span class="material-symbols-outlined me-2">visibility_off</span>
-                            <?= esc(lang('App.actions.hide') ?? 'Ausblenden') ?>
-                          </button>
-                        </form>
-                      </li>
-                      <?php endif; ?>
-                      <!-- DELETE -->
-                      <?php if ($canManage): ?>
-                      <li>
-                        <button class="dropdown-item text-danger" type="button" data-action="delete-tile" data-tile-id="<?= (int)$tile['id'] ?>" data-delete-url="<?= esc(site_url('dashboard/tile/' . (int)$tile['id'] . '/delete')) ?>" data-confirm-text="<?= esc(lang('App.pages.dashboard.delete_tile_confirm')) ?>">
-                          <span class="material-symbols-outlined me-2">delete</span>
-                          <?= esc(lang('App.actions.delete') ?? 'Löschen') ?>
-                        </button>
-                      </li>
-                      <?php endif; ?>
-                    </ul>
-                  </div>
-                  <?php endif; ?>
-                </div>
-                <?php if ($tile['type'] === 'link'): ?>
-                  <?php if (!empty($tile['text'])): ?>
-                    <p class="mb-0 text-muted small"><?= esc($tile['text']) ?></p>
-                  <?php endif; ?>
-                <?php elseif ($tile['type'] === 'iframe'): ?>
-                  <iframe src="<?= esc($tile['url']) ?>" loading="lazy" style="width:100%;min-height:300px;border:0;border-radius:.5rem"></iframe>
-                <?php elseif ($tile['type'] === 'file'): ?>
-                  <?php if (!empty($tile['text'])): ?>
-                    <p class="mb-0 text-muted small"><?= esc($tile['text']) ?></p>
-                  <?php endif; ?>
-                <?php endif; ?>
-                <?php if ($canManage): ?>
-                <!-- Edit Tile Modal (moved outside of .tp-tile to avoid event/z-index conflicts) -->
-                <?php /* Modal markup is rendered after the tile container to ensure reliable Bootstrap behavior */ ?>
-                <?php endif; ?>
-              </div>
-              <?php if ($canManage): ?>
-              <!-- Edit Tile Modal -->
+            <div class="col-12 col-md-<?= $colSize ?>">
+              <?= view('partials/tile', [
+                'tile' => $tile,
+                'manageable' => true,
+                'userId' => $userId,
+                'role' => $role,
+                'pingEnabled' => $pingEnabled ?? false
+              ]) ?>
+            </div>
+            
+            <?php 
+              $canManage = false;
+              if (isset($userId)) {
+                $isOwner = ((int)($tile['user_id'] ?? 0) === (int)$userId);
+                $isGlobal = ((int)($tile['is_global'] ?? 0) === 1);
+                $isAdmin = (($role ?? 'user') === 'admin');
+                $canManage = $isOwner || ($isAdmin && $isGlobal);
+              }
+            ?>
+            
+            <?php if ($canManage): ?>
+              <!-- Edit Modal (unverändert übernommen) -->
               <div class="modal fade" id="editTileModal<?= (int)$tile['id'] ?>" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-scrollable">
                   <div class="modal-content">
@@ -592,8 +494,7 @@
                   </div>
                 </div>
               </div>
-              <?php endif; ?>
-            </div>
+            <?php endif; ?>
           <?php endforeach; ?>
           </div>
         </div>
