@@ -109,3 +109,29 @@ body.tp-bg-enabled {
                 #0f1115;
   }
 }
+
+/* Three-dot dropdown styling (optional) */
+.tp-tile .dropdown-menu,
+.tp-tiles .dropdown-menu {
+  font-size: 0.875rem;
+  min-width: 180px;
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+.tp-tile .dropdown-item,
+.tp-tiles .dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+}
+
+.tp-tile .dropdown-item .material-symbols-outlined,
+.tp-tiles .dropdown-item .material-symbols-outlined {
+  font-size: 20px;
+  width: 24px;
+}
+
+.tp-tile .dropdown-divider,
+.tp-tiles .dropdown-divider {
+  margin: 0.25rem 0;
+}

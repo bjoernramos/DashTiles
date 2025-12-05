@@ -419,33 +419,45 @@
                       $canManage = $isOwner || ($isAdmin && $isGlobal);
                     }
                   ?>
-                  <div class="btn-group">
-                    <!-- Drag handle visual indicator -->
-
-                    <?php if ($canManage): ?>
-                      <button type="button" class="btn btn-sm text-secondary text-decoration-none border-0 bg-transparent p-1" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>">
-                          <span class="material-symbols-outlined">edit</span>
-                      </button>
-                      <button type="button"
-                              class="btn btn-sm text-danger text-decoration-none border-0 bg-transparent p-1"
-                              data-action="delete-tile"
-                              data-tile-id="<?= (int)$tile['id'] ?>"
-                              data-delete-url="<?= esc(site_url('dashboard/tile/' . (int)$tile['id'] . '/delete')) ?>"
-                              data-confirm-text="<?= esc(lang('App.pages.dashboard.delete_tile_confirm')) ?>">
-                          <span class="material-symbols-outlined">delete</span>
-
-                      </button>
-                    <?php endif; ?>
-                    <?php if (!empty($tile['is_global']) && (int)$tile['is_global'] === 1): ?>
-                      <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/hide" class="m-0 d-inline">
-                        <button class="btn btn-sm text-warning text-decoration-none border-0 bg-transparent p-1" type="submit">
-                        <span class="material-symbols-outlined">
-                            disabled_visible
-                        </span>
+                  <?php if ($canManage || (!empty($tile['is_global']) && (int)$tile['is_global'] === 1)): ?>
+                  <div class="dropdown">
+                    <button class="btn btn-sm text-secondary border-0 bg-transparent p-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <span class="material-symbols-outlined">more_vert</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <!-- EDIT (öffnet Modal) -->
+                      <?php if ($canManage): ?>
+                      <li>
+                        <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#editTileModal<?= (int)$tile['id'] ?>">
+                          <span class="material-symbols-outlined me-2">edit</span>
+                          <?= esc(lang('App.actions.edit') ?? 'Bearbeiten') ?>
                         </button>
-                      </form>
-                    <?php endif; ?>
+                      </li>
+                      <li><hr class="dropdown-divider"></li>
+                      <?php endif; ?>
+                      <!-- HIDE (nur bei globalen Tiles) -->
+                      <?php if (!empty($tile['is_global']) && (int)$tile['is_global'] === 1): ?>
+                      <li>
+                        <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>/hide" class="m-0">
+                          <button class="dropdown-item" type="submit">
+                            <span class="material-symbols-outlined me-2">visibility_off</span>
+                            <?= esc(lang('App.actions.hide') ?? 'Ausblenden') ?>
+                          </button>
+                        </form>
+                      </li>
+                      <?php endif; ?>
+                      <!-- DELETE -->
+                      <?php if ($canManage): ?>
+                      <li>
+                        <button class="dropdown-item text-danger" type="button" data-action="delete-tile" data-tile-id="<?= (int)$tile['id'] ?>" data-delete-url="<?= esc(site_url('dashboard/tile/' . (int)$tile['id'] . '/delete')) ?>" data-confirm-text="<?= esc(lang('App.pages.dashboard.delete_tile_confirm')) ?>">
+                          <span class="material-symbols-outlined me-2">delete</span>
+                          <?= esc(lang('App.actions.delete') ?? 'Löschen') ?>
+                        </button>
+                      </li>
+                      <?php endif; ?>
+                    </ul>
                   </div>
+                  <?php endif; ?>
                 </div>
                 <?php if ($tile['type'] === 'link'): ?>
                   <?php if (!empty($tile['text'])): ?>
@@ -476,13 +488,9 @@
                       <form method="post" action="/dashboard/tile/<?= (int)$tile['id'] ?>" enctype="multipart/form-data" id="editForm<?= (int)$tile['id'] ?>">
                 <input type="hidden" name="type" value="<?= esc($tile['type']) ?>">
                 <div class="row g-2">
-                  <div class="col-12 col-md-6">
+                  <div class="col-12">
                     <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.title')) ?></label>
                     <input name="title" class="form-control" value="<?= esc($tile['title']) ?>">
-                  </div>
-                  <div class="col-12 col-md-6">
-                    <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.category')) ?></label>
-                    <input name="category" class="form-control" value="<?= esc($tile['category'] ?? '') ?>">
                   </div>
                 </div>
                 <?php if ($tile['type'] !== 'file'): ?>
@@ -510,6 +518,10 @@
                     <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.text')) ?></label>
                     <input name="text" class="form-control" value="<?= esc($tile['text'] ?? '') ?>">
                   </div>
+                </div>
+                <div class="mt-2">
+                  <label class="form-label"><?= esc(lang('App.pages.dashboard.labels.category')) ?></label>
+                  <input name="category" class="form-control" value="<?= esc($tile['category'] ?? '') ?>">
                 </div>
                 <div class="mt-2">
                   <label class="form-label">Hintergrundbild</label>

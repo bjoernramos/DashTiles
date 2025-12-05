@@ -261,11 +261,49 @@
     } catch(e) { /* noop */ }
   }
 
+  // --- Delete tile handler ------------------------------------------------
+  function initDeleteTile(){
+    try {
+      document.addEventListener('click', function(ev){
+        var t = ev.target;
+        if (!t || !t.closest) return;
+        var btn = t.closest('[data-action="delete-tile"]');
+        if (!btn) return;
+
+        var confirmText = btn.getAttribute('data-confirm-text') || 'Wirklich löschen?';
+        if (!window.confirm(confirmText)) return;
+
+        var deleteUrl = btn.getAttribute('data-delete-url');
+        if (!deleteUrl) return;
+
+        // Use shared form helper if available to preserve CSRF/method spoofing
+        if (typeof window.tpSubmitSharedForm === 'function') {
+          try { window.tpSubmitSharedForm(deleteUrl, {_method: 'DELETE'}); } catch(_) {}
+        } else {
+          // Basic fallback: create a temporary form
+          try {
+            var f = document.createElement('form');
+            f.method = 'post';
+            f.action = deleteUrl;
+            var m = document.createElement('input');
+            m.type = 'hidden';
+            m.name = '_method';
+            m.value = 'DELETE';
+            f.appendChild(m);
+            document.body.appendChild(f);
+            f.submit();
+          } catch(_) {}
+        }
+      });
+    } catch(e) { /* noop */ }
+  }
+
   onReady(function(){
     initHeaderSearch();
     if (document.getElementById('clock')) { startTime(); }
     initTileClicks();
     initTilePing();
+    initDeleteTile();
   });
 
 })();
