@@ -15,6 +15,7 @@ class UserSettingModel extends Model
     protected $allowedFields = [
         'user_id', 'columns', 'ping_enabled', 'background_enabled',
         'search_tile_enabled', 'search_engine', 'search_autofocus',
+        'session_duration',
     ];
 
     protected $returnType = 'array';
@@ -26,7 +27,9 @@ class UserSettingModel extends Model
         'background_enabled' => 'permit_empty|in_list[0,1]',
         'search_tile_enabled' => 'permit_empty|in_list[0,1]',
         'search_autofocus' => 'permit_empty|in_list[0,1]',
-        'search_engine' => 'permit_empty|in_list[google,duckduckgo,bing,startpage,ecosia]'
+        'search_engine' => 'permit_empty|in_list[google,duckduckgo,bing,startpage,ecosia]',
+        // Allow any integer value; 0 means "until browser is closed"
+        'session_duration' => 'permit_empty|integer'
     ];
 
     public function getOrCreate(int $userId): array
@@ -47,6 +50,7 @@ class UserSettingModel extends Model
             'search_tile_enabled' => 1,
             'search_engine' => 'google',
             'search_autofocus' => 0,
+            'session_duration' => 7200,
         ];
         $this->insert($defaults);
         return $this->find($userId) ?: $defaults;

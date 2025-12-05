@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\UserModel;
 use App\Services\LDAPService;
+use App\Models\UserSettingModel;
 
 class AuthController extends BaseController
 {
@@ -162,5 +163,25 @@ class AuthController extends BaseController
             'is_active'  => (int) $user['is_active'],
             'logged_in'  => true,
         ]);
+
+        // Apply per-user session duration if configured
+        try {
+            $settings = (new UserSettingModel())->getOrCreate((int) $user['id']);
+            $ttl = (int) ($settings['session_duration'] ?? 7200);
+            // Allow 0 (expire on browser close) and any positive integer
+            if ($ttl >= 0) {
+                // Store TTL in session for later use
+                session()->set('session_duration', $ttl);
+                // Refresh cookie with user-specific expiration
+                $conf = config('Session');
+                $cookieName = $conf->cookieName ?? 'ci_session';
+                $sid = session_id();
+                if ($sid) {
+                    service('response')->setCookie($cookieName, $sid, $ttl, '', '', service('request')->isSecure(), true);
+                }
+            }
+        } catch (\Throwable $e) {
+            // ignore TTL customization errors
+        }
     }
 }

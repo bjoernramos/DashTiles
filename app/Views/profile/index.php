@@ -148,6 +148,44 @@
             </div>
             <hr class="mt-2">
             <div class="col-12">
+              <h6 class="mb-2">Sitzungsdauer bei Inaktivität</h6>
+            </div>
+            <?php 
+              $sessSecs = (int)($settings['session_duration'] ?? 7200);
+              if ($sessSecs < 0) { $sessSecs = 0; }
+              $prefUnit = 'minutes';
+              $prefValue = 0;
+              if ($sessSecs === 0) {
+                  $prefUnit = 'minutes';
+                  $prefValue = 0;
+              } elseif ($sessSecs % 604800 === 0) { // weeks
+                  $prefUnit = 'weeks';
+                  $prefValue = (int)($sessSecs / 604800);
+              } elseif ($sessSecs % 86400 === 0) { // days
+                  $prefUnit = 'days';
+                  $prefValue = (int)($sessSecs / 86400);
+              } else { // minutes
+                  $prefUnit = 'minutes';
+                  $prefValue = (int)max(1, round($sessSecs / 60));
+              }
+            ?>
+            <div class="col-md-4">
+              <label class="form-label" for="session_value">Wert</label>
+              <input type="number" min="0" step="1" id="session_value" name="session_value" class="form-control" value="<?= esc($prefValue) ?>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="session_unit">Einheit</label>
+              <select class="form-select" id="session_unit" name="session_unit">
+                <option value="minutes" <?= $prefUnit==='minutes'?'selected':'' ?>>Minuten</option>
+                <option value="days" <?= $prefUnit==='days'?'selected':'' ?>>Tage</option>
+                <option value="weeks" <?= $prefUnit==='weeks'?'selected':'' ?>>Wochen</option>
+              </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <div class="form-text">Keine Mindest-/Höchstgrenze. 0 = bis zum Schließen des Browsers. Wird in Sekunden gespeichert.</div>
+            </div>
+            <hr class="mt-2">
+            <div class="col-12">
               <h6 class="mb-2">Suche in der Kopfzeile</h6>
             </div>
             <div class="col-12 form-check form-switch">

@@ -104,9 +104,28 @@ class Profile extends BaseController
         $searchEnabled = $this->request->getPost('search_tile_enabled') ? 1 : 0;
         $searchAutofocus = $this->request->getPost('search_autofocus') ? 1 : 0;
         $engine = (string) ($this->request->getPost('search_engine') ?? 'google');
+        // Session duration: single numeric value + unit (minutes, days, weeks)
+        $sessionValue = (int) ($this->request->getPost('session_value') ?? 0);
+        $sessionUnit  = (string) ($this->request->getPost('session_unit') ?? 'minutes');
         $allowedEngines = ['google','duckduckgo','bing','startpage','ecosia'];
         if (!in_array($engine, $allowedEngines, true)) {
             $engine = 'google';
+        }
+        // Convert to seconds; allow 0 (expires on browser close) and no min/max
+        $duration = 0;
+        if ($sessionValue > 0) {
+            switch ($sessionUnit) {
+                case 'weeks':
+                    $duration = $sessionValue * 7 * 24 * 3600; // 604800
+                    break;
+                case 'days':
+                    $duration = $sessionValue * 24 * 3600; // 86400
+                    break;
+                case 'minutes':
+                default:
+                    $duration = $sessionValue * 60;
+                    break;
+            }
         }
         $settings = new UserSettingModel();
         $exists = $settings->find($userId);
@@ -117,9 +136,26 @@ class Profile extends BaseController
             'search_tile_enabled' => $searchEnabled,
             'search_engine' => $engine,
             'search_autofocus' => $searchAutofocus,
+            'session_duration' => max(0, (int) $duration),
         ];
         if ($exists) { $settings->update($userId, $payload); }
         else { $settings->insert($payload + ['columns' => 3]); }
+
+        // If current user updated duration, refresh cookie lifetime as best-effort
+        try {
+            $conf = config('Session');
+            $cookieName = $conf->cookieName ?? 'ci_session';
+            $sid = session_id();
+            $ttl = (int) $payload['session_duration'];
+            if ($sid && $ttl >= 0) {
+                // ttl = 0 means expire when browser closes
+                $this->response->setCookie($cookieName, $sid, $ttl, '', '', $this->request->isSecure(), true);
+                session()->set('session_duration', $ttl);
+            }
+        } catch (\Throwable $e) {
+            // ignore cookie update errors
+        }
+
         return redirect()->to('/profile')->with('success', 'Einstellungen gespeichert.');
     }
 }

@@ -38,6 +38,7 @@ class Filters extends BaseFilters
         'auth'          => \App\Filters\AuthFilter::class,
         'admin'         => \App\Filters\AdminFilter::class,
         'locale'        => \App\Filters\LocaleFilter::class,
+        'sessionttl'    => \App\Filters\SessionTTLFilter::class,
     ];
 
     /**
@@ -81,6 +82,17 @@ class Filters extends BaseFilters
             // 'csrf',
             // 'invalidchars',
             'auth' => [
+                'except' => [
+                    'login',
+                    'login/*',
+                    'logout',
+                    'health',
+                    'lang',
+                    'lang/*',
+                    '/',
+                ],
+            ],
+            'sessionttl' => [
                 'except' => [
                     'login',
                     'login/*',
